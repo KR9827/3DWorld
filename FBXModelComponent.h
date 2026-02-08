@@ -31,12 +31,26 @@ public:
 	void Draw() const override;
 
 private:
-	std::unique_ptr<class Skeleton> m_skeleton;
-	std::unique_ptr<class MeshWrapper> m_meshWrapper;
+	/// @brief fbxファイル内のメッシュとテクスチャを保持する
+	struct SubMesh
+	{
+		std::unique_ptr<class MeshWrapper> meshWrapper;
+		Array<struct SkinnedVertex> skinnedVertices;			// スキニングデータ
+		Array<TriangleIndex32> indices;							// インデックス
+		Texture texture;										// テクスチャ
+	};
 
-	Array<Vertex3D> m_vertices;												// 頂点
-	Array<TriangleIndex32> m_indices;										// インデックス配列
-	Array<struct SkinnedVertex> m_skinnedVertices;							// スキニングデータ用
+
+	std::unique_ptr<class Skeleton> m_skeleton;
+
+	Array<SubMesh> m_subMeshes;												// 複数のメッシュやテクスチャを保持する配列
+
+
+	//std::unique_ptr<class MeshWrapper> m_meshWrapper;
+
+	//Array<Vertex3D> m_vertices;												// 頂点
+	//Array<TriangleIndex32> m_indices;										// インデックス配列
+	//Array<struct SkinnedVertex> m_skinnedVertices;							// スキニングデータ用
 
 	Assimp::Importer m_importer;
 	const aiScene* m_scene;													// FBXのシーンデータ
@@ -52,17 +66,17 @@ private:
 	/// @brief fbx形式のモデルをsiv3dで扱えるMeshDataに変換する
 	/// @param mesh Assimpで読み込んだメッシュ
 	/// @return siv3dで使えるデータ型のメッシュ
-	MeshData ConvertToSiv3DMesh(const aiMesh* mesh);
+	MeshData ConvertToSiv3DMesh(const aiMesh* mesh, SubMesh& sub);
 
-	/// @brief テクスチャのロード
+	/// @brief マテリアルからテクスチャをロード
 	/// @param texturePath テクスチャのパス
-	void LoadTexture(const FilePath& texturePath);
+	Texture LoadMaterialTexture(const aiScene* scene, uint32 materialIndex, const FilePath& fbxFilePath);
 
 	/// @brief ボーンの変形行列を使って各頂点のアニメーション後の位置に変換する
-	void ApplySkinning();
+	void ApplySkinning(SubMesh& sub);
 
 	/// @brief メッシュデータを更新する
-	void UpdateMeshData();
+	void UpdateMeshData(SubMesh& sub);
 
 	/// @brief アニメーションを再生する
 	void StartAnimation();

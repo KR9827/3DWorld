@@ -52,7 +52,7 @@ void MeshWrapper::UpdateMeshData(const Array<Vertex3D>& vertices, const Array<Tr
 	m_currentVertices = vertices;
 	m_currentIndices = indices;
 	MeshData meshData{ m_currentVertices, m_currentIndices };
-	m_mesh.fill(meshData);										// すでにあるGPUバッファの中身だけ更新
+	m_mesh.fill(meshData);											// すでにあるGPUバッファの中身だけ更新
 }
 
 void MeshWrapper::Draw(const Mat4x4& transform, const Optional<Texture>& texture) const

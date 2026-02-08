@@ -8,9 +8,9 @@ void Skeleton::Initialize(const aiScene* scene)
 
 
 	//// FBXの構造をコンソールにすべて表示して名前を確認する
-	Console << U"--- FBX Node Hierarchy ---";
-	DisplayNodeHierarchy(m_scene->mRootNode, 0);
-	Console << U"--------------------------";
+	//Console << U"--- FBX Node Hierarchy ---";
+	//DisplayNodeHierarchy(m_scene->mRootNode, 0);
+	//Console << U"--------------------------";
 
 
 	CalculateBoneCount();
@@ -167,10 +167,6 @@ void Skeleton::CalculateBoneTransform(float animationTime)
 	aiMatrix4x4 rootTransform = m_scene->mRootNode->mTransformation;
 	ReadNodeHierarchy(animTime, m_scene->mRootNode, rootTransform, anim);
 
-
-	//aiMatrix4x4 identity{ aiMatrix4x4() };
-	//ReadNodeHierarchy(animTime, m_scene->mRootNode, identity, anim);
-	//ReadNodeHierarchy(0.0f, m_scene->mRootNode, identity, nullptr);
 }
 
 void Skeleton::CalvulateBoneTransform_StaticPose(int32 keyFrameIndex)
@@ -182,8 +178,6 @@ void Skeleton::ReadNodeHierarchy(float animationTime, const aiNode* node, const 
 {
 	// ログに出力して、ボーン名が意図した通りか確認
 	std::string nodeName{ node->mName.C_Str() };
-	String sNodeName = Unicode::FromUTF8(nodeName);
-	//std::string nodeName{ node->mName.data };
 
 
 	// 補助ノードは変換を無視
@@ -196,29 +190,12 @@ void Skeleton::ReadNodeHierarchy(float animationTime, const aiNode* node, const 
 		return;
 	}
 
-
-
 	// アニメーションチャンネルがある場合は保管する、ない場合はノードのデフォルトの変換を行う
 	// nodeTransform：デフォルトのボーンの姿勢（BindPose）
 	aiMatrix4x4 nodeTransform = node->mTransformation;
 
-
 	// チャンネル（アニメーション対象）を探す
 	aiNodeAnim* channel = FindNodeAnimation(animation, nodeName);
-
-	//bool isBone{ m_boneMapping.find(nodeName) != m_boneMapping.end() };
-	// -------------
-	// debug
-	// -------------
-	//if (isBone && !channel)
-	//{
-	//	Console << U"ボーンなのにアニメーションがない：" << sNodeName;
-	//}
-	//else if (!isBone && channel)
-	//{
-	//	Console << U"ノードにアニメはついてるがボーンではない：" << sNodeName;
-	//}
-
 
 	if (channel)
 	{
@@ -238,12 +215,10 @@ void Skeleton::ReadNodeHierarchy(float animationTime, const aiNode* node, const 
 	
 		//aiMatrix4x4 rotationMatrix{ rotation.GetMatrix() };		// 回転：Quaternion -> Mat4x4 -> aiMatrix4x4
 		aiMatrix4x4 rotationMatrix = aiMatrix4x4(rotation.GetMatrix());
-		//rotationMatrix.Transpose();
 	
 		scalingMatrix.Scaling(aiVector3D(static_cast<float>(scale.x), static_cast<float>(scale.y), static_cast<float>(scale.z)), scalingMatrix);
 			
 		nodeTransform = translationMatrix * rotationMatrix * scalingMatrix;
-		//nodeTransform = scalingMatrix * rotationMatrix * translationMatrix;
 	}
 
 	aiMatrix4x4 globalTransform = parentTransform * nodeTransform;

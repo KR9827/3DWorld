@@ -24,6 +24,6 @@ private:
 	std::weak_ptr<class GameObject> m_target;	// ターゲットの弱参照
 	Vec3 m_offset{ 0.0, 5.0, -10.0 };					// ターゲットからカメラの位置をずらす変化量
 
-	float m_angle{ 0.0f };
+	float m_angle{ -Math::Pi / 2.0f };
 	float m_radius{ 20.0f };
 };

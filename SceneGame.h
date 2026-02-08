@@ -38,6 +38,10 @@ private:
 	bool m_updatingGameObject;												// ゲームオブジェクトを更新しているかどうか
 
 
+	ColorF m_backgroundColor;
+	MSRenderTexture m_renderTexture;
+
+
 
 	Sphere m_sphere;
 };
