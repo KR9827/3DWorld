@@ -5,34 +5,21 @@
 void Skeleton::Initialize(const aiScene* scene)
 {
 	this->m_scene = scene;
+	this->m_currentAnimScene = scene;			// 初期状態
 
-
-	//// FBXの構造をコンソールにすべて表示して名前を確認する
+	// FBXの構造をコンソールにすべて表示して名前を確認する
 	//Console << U"--- FBX Node Hierarchy ---";
 	//DisplayNodeHierarchy(m_scene->mRootNode, 0);
 	//Console << U"--------------------------";
 
+	// ルートノードの逆行列(GlobalInverse)をメッシュ側のルートから一度だけ計算
+	m_globalInverseTransform = m_scene->mRootNode->mTransformation;
+	m_globalInverseTransform.Inverse();
 
 	CalculateBoneCount();
 
-	// Masterボーンをルートとする
-	//aiNode* actualRoot{ m_scene->mRootNode->FindNode("RootNode") };
-	aiNode* actualRoot{ m_scene->mRootNode };
-	if (!actualRoot)
-	{
-		Console << U"ルートノードが見つかりません";
-		return;
-	}
-	aiMatrix4x4 globalInverse{ actualRoot->mTransformation };
-	globalInverse.Inverse();
-	SetGlobalinverseTransform(globalInverse);
-
-	//（テスト用：単位行列にする）
-	//aiMatrix4x4 identity;
-	//SetGlobalinverseTransform(identity);
-
-	// デバッグ用：walkアニメーション
 	SetAnimation(0);
+	CalculateBoneTransform(0.0f);
 }
 
 void Skeleton::SetAnimation(int32 index)
@@ -47,14 +34,25 @@ void Skeleton::SetAnimation(int32 index)
 	m_currentTime = 0.0;
 }
 
+void Skeleton::SetAnimationScene(const aiScene* scene, int32 index)
+{
+	m_currentAnimScene = scene;
+	m_currentAnimationIndex = index;
+	m_currentTime = 0.0;
+
+	aiMatrix4x4 globalInverse = m_currentAnimScene->mRootNode->mTransformation;
+	globalInverse.Inverse();
+	m_globalInverseTransform = globalInverse;
+}
+
 void Skeleton::UpdateAnimation(double deltaTime)
 {
-	if (!m_scene || m_scene->mNumAnimations == 0)
+	if (!m_currentAnimScene || m_currentAnimScene->mNumAnimations == 0)
 	{
 		return;
 	}
 
-	aiAnimation* animation{ m_scene->mAnimations[m_currentAnimationIndex] };
+	aiAnimation* animation{ m_currentAnimScene->mAnimations[m_currentAnimationIndex] };
 	if (!animation)
 	{
 		Console << U"Error：mAnimations[m_currentAnimationIndex]がnullptrです";
@@ -68,12 +66,13 @@ void Skeleton::UpdateAnimation(double deltaTime)
 	// ループ再生
 	if (m_currentTime > durationInSeconds)
 	{
-		m_currentTime -= durationInSeconds;
+		m_currentTime = fmod(m_currentTime, durationInSeconds);
 	}
 
 	//Console << U"Animation TickPerSecond:" << animation->mTicksPerSecond;
-	CalculateBoneTransform(static_cast<float>(m_currentTime));
+	CalculateBoneTransform(static_cast<float>(m_currentTime * ticks));
 }
+
 
 void Skeleton::CalculateBoneCount()
 {
@@ -145,28 +144,22 @@ void Skeleton::LoadBonesFromMesh(const aiMesh* mesh, Array<SkinnedVertex>& outVe
 void Skeleton::CalculateBoneTransform(float animationTime)
 {
 	// エラーチェック
-	if (!m_scene->HasAnimations())
+	if (!m_currentAnimScene->HasAnimations())
 	{
 		Console << U"アニメーションが存在しません";
 		return;
 	}
-	if (m_currentAnimationIndex < 0 || static_cast<uint32>(m_currentAnimationIndex) >= m_scene->mNumAnimations)
+	if (m_currentAnimationIndex < 0 || static_cast<uint32>(m_currentAnimationIndex) >= m_currentAnimScene->mNumAnimations)
 	{
 		Console << U"Error：m_currentAnimationIndexが範囲外です";
 		return;
 	}
+	if (!m_currentAnimScene || !m_currentAnimScene->mAnimations) return;
 
-	aiAnimation* anim{ m_scene->mAnimations[m_currentAnimationIndex] };
-	if (!anim) return;
+	aiAnimation* anim = m_currentAnimScene->mAnimations[m_currentAnimationIndex];
 
-	double ticksPerSecond{ anim->mTicksPerSecond != 0.0 ? anim->mTicksPerSecond : 25.0 };		// mTicksPerSecondが0なら25.0にする
-	double timeInTicks{ animationTime * ticksPerSecond };
-
-	float animTime{ fmod(static_cast<float>(timeInTicks), static_cast<float>(anim->mDuration)) };
-
-	aiMatrix4x4 rootTransform = m_scene->mRootNode->mTransformation;
-	ReadNodeHierarchy(animTime, m_scene->mRootNode, rootTransform, anim);
-
+	// 辿るルートノードはmeshのscene
+	ReadNodeHierarchy(animationTime, m_currentAnimScene->mRootNode, aiMatrix4x4(), anim);
 }
 
 void Skeleton::CalvulateBoneTransform_StaticPose(int32 keyFrameIndex)
@@ -176,9 +169,8 @@ void Skeleton::CalvulateBoneTransform_StaticPose(int32 keyFrameIndex)
 
 void Skeleton::ReadNodeHierarchy(float animationTime, const aiNode* node, const aiMatrix4x4& parentTransform, aiAnimation* animation)
 {
-	// ログに出力して、ボーン名が意図した通りか確認
 	std::string nodeName{ node->mName.C_Str() };
-
+	aiMatrix4x4 nodeTransform = node->mTransformation;
 
 	// 補助ノードは変換を無視
 	if (IsAssimpHelperNode(nodeName))
@@ -190,49 +182,51 @@ void Skeleton::ReadNodeHierarchy(float animationTime, const aiNode* node, const 
 		return;
 	}
 
-	// アニメーションチャンネルがある場合は保管する、ない場合はノードのデフォルトの変換を行う
-	// nodeTransform：デフォルトのボーンの姿勢（BindPose）
-	aiMatrix4x4 nodeTransform = node->mTransformation;
+	// アニメーションデータがあるか名前で探す
+	aiNodeAnim* nodeAnim = FindNodeAnimation(animation, nodeName);
 
-	// チャンネル（アニメーション対象）を探す
-	aiNodeAnim* channel = FindNodeAnimation(animation, nodeName);
-
-	if (channel)
+	if (nodeAnim)
 	{
 		// 位置、回転、スケールを補間する
-		Vec3 position{ AnimationHelper::InterpolatePosition(channel, animationTime) };
-		aiQuaternion rotation{ AnimationHelper::InterpolateRotation(channel, animationTime) };
-		Vec3 scale{ AnimationHelper::InterpolateScale(channel, animationTime) };
+		Vec3 position{ AnimationHelper::InterpolatePosition(nodeAnim, animationTime) };
+		aiQuaternion rotation{ AnimationHelper::InterpolateRotation(nodeAnim, animationTime) };
+		Vec3 scale{ AnimationHelper::InterpolateScale(nodeAnim, animationTime) };
+
+		// アニメーションのその場化
+		if (nodeName.find("Hips") != std::string::npos ||
+			nodeName.find("Root") != std::string::npos)
+		{
+			position.x = 0.0f;
+			position.z = 0.0f;
+		}
 
 		// 保険
 		if (scale.x == 0) scale.x = 1;
 		if (scale.y == 0) scale.y = 1;
 		if (scale.z == 0) scale.z = 1;
-	
+
 		// 補間した位置、回転、スケールをaiMatrixに変換する
 		aiMatrix4x4 translationMatrix, scalingMatrix;
 		translationMatrix.Translation(aiVector3D(static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(position.z)), translationMatrix);
-	
+
 		//aiMatrix4x4 rotationMatrix{ rotation.GetMatrix() };		// 回転：Quaternion -> Mat4x4 -> aiMatrix4x4
 		aiMatrix4x4 rotationMatrix = aiMatrix4x4(rotation.GetMatrix());
-	
+
 		scalingMatrix.Scaling(aiVector3D(static_cast<float>(scale.x), static_cast<float>(scale.y), static_cast<float>(scale.z)), scalingMatrix);
-			
+
 		nodeTransform = translationMatrix * rotationMatrix * scalingMatrix;
 	}
 
 	aiMatrix4x4 globalTransform = parentTransform * nodeTransform;
 
-	// このノードがボーンだった場合、m_finalBoneTransformを更新する
-	auto it = m_boneMapping.find(nodeName);
-	if (it != m_boneMapping.end())
+	// ボーン行列を更新
+	if (m_boneMapping.contains(nodeName))
 	{
-		int32 boneIndex = it->second;
+		uint32 boneIndex = m_boneMapping[nodeName];
 		m_finalBoneTransform[boneIndex] = m_globalInverseTransform * globalTransform * m_boneOffsetMatrices[boneIndex];
 
 	}
 
-	
 	// 子ノードに再帰
 	for (uint32 i = 0; i < node->mNumChildren; ++i)
 	{

@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "Camera.h"
 #include "FBXModelComponent.h"
+#include "AnimationComponent.h"
 
 SceneGame::SceneGame(const InitData& init)
 	: IScene(init)
@@ -34,16 +35,15 @@ bool SceneGame::SystemInit()
 	m_player->SetPosition(Vec3{ 0, 0, 0});
 	m_player->SetScale(3.0f);
 	m_player->SetRotation(Quaternion::Identity());
-	m_player->AddComponent<FBXModelComponent>(U"Assets/fbx/PunchingBag.fbx", none, 100);
+	// プレイヤーにコンポーネントを追加
+	auto model = m_player->AddComponent<FBXModelComponent>(U"Assets/fbx/Walking.fbx", 100);
+	m_player->AddComponent<AnimationComponent>(model->GetSkeleton(), 120);					// スケルトンのポインタをAnimationComponentに渡す
+
 
 	// カメラ生成
 	m_camera = AddGameObject<Camera>();
 	m_camera->SetTarget(m_player);			// 追従対象を指定
 	m_camera->SetPosition(Vec3{ 0, 5, -10 });
-
-	
-
-
 
 	m_sphere = Sphere{ Vec3{0, 0, 0}, 2.0 };
 
@@ -127,7 +127,7 @@ void SceneGame::draw() const
 	// 2D描画
 	// ------------------------
 	{
-
+		
 	}
 }
 

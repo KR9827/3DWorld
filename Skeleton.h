@@ -20,9 +20,12 @@ public:
 	/// @param index アニメーションインデックス
 	void SetAnimation(int32 index);
 
+	void SetAnimationScene(const aiScene* scene, int32 index);
+
 	/// @brief アニメーションを更新
 	/// @param deltaTime delta時間
 	void UpdateAnimation(double deltaTime);
+
 
 	/// @brief メッシュをもとにボーンのマッピングとウェイトの計算を行う
 	/// @param mesh 対象のメッシュ
@@ -37,6 +40,7 @@ public:
 
 private:
 	const aiScene* m_scene{ nullptr };							// fbxモデルデータ
+	const aiScene* m_currentAnimScene{ nullptr };				// アニメ側のデータの参照
 	int32 m_currentAnimationIndex{ 0 };							// 現在のアニメーションのインデックス
 	double m_currentTime{ 0.0 };								// アニメーションの現在の時間
 	aiMatrix4x4 m_globalInverseTransform;						// シーン全体のルートノードのグローバル変換行列の逆行列
@@ -44,7 +48,7 @@ private:
 	Array<aiMatrix4x4> m_boneOffsetMatrices;					// オフセット行列
 	Array<aiMatrix4x4> m_finalBoneTransform;					// ボーンの最終変換行列
 
-	// == 再生ループの溜めの補助関数 ==
+	// == 再生ループのための補助関数 ==
 
 	// ボーンの数を計算してfinalBoneTransformを初期化する
 	void CalculateBoneCount();

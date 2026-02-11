@@ -23,12 +23,15 @@ public:
 	/// @param fbxFilePath 読み込むFBXファイルのパス
 	/// @param texFilePath 読み込むテクスチャファイルのパス（デフォルト：なし）
 	/// @param updateOrder コンポーネントを更新する時の優先度
-	FBXModelComponent(std::weak_ptr<class GameObject> owner, const FilePath& fbxFilePath, const Optional<FilePath>& texFilePath = none, int updateOrder = 100);	// fbxモデルのパスとテクスチャのパス
+	FBXModelComponent(std::weak_ptr<class GameObject> owner, const FilePath& fbxFilePath, int updateOrder = 100);	// fbxモデルのパスとテクスチャのパス
 	~FBXModelComponent();
 
-	void Start() override;
+	void Initialize() override;
 	void Update(double deltaTime) override;
 	void Draw() const override;
+
+
+	std::shared_ptr<class Skeleton> GetSkeleton() const { return m_skeleton; }
 
 private:
 	/// @brief fbxファイル内のメッシュとテクスチャを保持する
@@ -41,16 +44,9 @@ private:
 	};
 
 
-	std::unique_ptr<class Skeleton> m_skeleton;
+	std::shared_ptr<class Skeleton> m_skeleton;
 
 	Array<SubMesh> m_subMeshes;												// 複数のメッシュやテクスチャを保持する配列
-
-
-	//std::unique_ptr<class MeshWrapper> m_meshWrapper;
-
-	//Array<Vertex3D> m_vertices;												// 頂点
-	//Array<TriangleIndex32> m_indices;										// インデックス配列
-	//Array<struct SkinnedVertex> m_skinnedVertices;							// スキニングデータ用
 
 	Assimp::Importer m_importer;
 	const aiScene* m_scene;													// FBXのシーンデータ

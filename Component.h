@@ -9,7 +9,7 @@ public:
 	Component(std::weak_ptr<class GameObject> owner, int updateOrder = 100);
 	virtual ~Component();
 
-	virtual void Start();
+	virtual void Initialize();
 	virtual void Update(double deltaTime);
 	virtual void Draw() const;
 	virtual void OnUpdateWorldTransform() {}

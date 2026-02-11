@@ -6,7 +6,7 @@
 
 #include <filesystem>
 
-FBXModelComponent::FBXModelComponent(std::weak_ptr<GameObject> owner, const FilePath& fbxFilePath, const Optional<FilePath>& texFilePath, int updateOrder)
+FBXModelComponent::FBXModelComponent(std::weak_ptr<GameObject> owner, const FilePath& fbxFilePath, int updateOrder)
 	: Component(owner, updateOrder)
 	, m_scene(nullptr)
 {
@@ -25,12 +25,8 @@ FBXModelComponent::FBXModelComponent(std::weak_ptr<GameObject> owner, const File
 		| aiProcess_PopulateArmatureData			// ボーン構造を整理
 		| aiProcess_OptimizeGraph
 		//| aiProcess_ConvertToLeftHanded			// 左手座標系に変換
-		//| aiProcess_MakeLeftHanded					// 左手座標系に強制
-		| aiProcess_FlipWindingOrder				// 三角形の裏表を合わせる
 		| aiProcess_GlobalScale						// スケールを自動調整
 	);
-
-
 
 	// ファイルが存在しない、またはルートノードがない（データが空）場合
 	if (!m_scene || !m_scene->mRootNode)
@@ -50,7 +46,7 @@ FBXModelComponent::FBXModelComponent(std::weak_ptr<GameObject> owner, const File
 		// ボーン構造の生成(アニメーションがある場合)
 		if (m_scene->HasAnimations())
 		{
-			m_skeleton = std::make_unique<Skeleton>();
+			m_skeleton = std::make_shared<Skeleton>();
 			m_skeleton->Initialize(m_scene);
 		}
 
@@ -69,15 +65,7 @@ FBXModelComponent::FBXModelComponent(std::weak_ptr<GameObject> owner, const File
 			sub.texture = LoadMaterialTexture(m_scene, mesh->mMaterialIndex, fbxFilePath);
 
 			m_subMeshes << std::move(sub);
-
-
-			// Assimp -> siv3d meshDataに変換
-			//MeshData data{ ConvertToSiv3DMesh(m_scene->mMeshes[0]) };
-			//m_meshWrapper = std::make_unique<MeshWrapper>(data.vertices, data.indices);
 		}
-
-
-		// boneTransform.clear();
 	}
 	else
 	{
@@ -98,7 +86,7 @@ FBXModelComponent::~FBXModelComponent()
 	Console << U"FBXModelComponentが破棄されました";
 }
 
-void FBXModelComponent::Start()
+void FBXModelComponent::Initialize()
 {
 	// FBXModelComponentを介して情報を渡すユーティリティ用処理
 
@@ -114,13 +102,9 @@ void FBXModelComponent::Start()
 /// @note ボーンの行列を更新->各頂点にスキニングを適用->結果をメッシュに反映する
 void FBXModelComponent::Update(double deltaTime)
 {
-	if (!m_isPlaying || !m_scene->HasAnimations())
-	{
-		return;
-	}
+	if (!m_isPlaying || !m_scene->HasAnimations() || !m_skeleton) return;
 
-	// アニメーションの更新
-	m_skeleton->UpdateAnimation(deltaTime);
+	auto& mats = m_skeleton->GetFinalBoneTransform();
 
 	// スケルトンのボーン変形にしたがってスキニングをする(CPUで頂点変換する)
 	for (auto& sub : m_subMeshes)
@@ -212,8 +196,9 @@ Texture FBXModelComponent::LoadMaterialTexture(const aiScene* scene, uint32 mate
 {
 	aiMaterial* material = scene->mMaterials[materialIndex];
 	aiString path;
+	aiColor4D color;
 
-	// 基本色（デフューズテクスチャ）を取得
+	// 基本色（デフューズテクスチャ）がある場合
 	if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS)
 	{
 		const char* pathPtr = path.C_Str();
@@ -245,6 +230,11 @@ Texture FBXModelComponent::LoadMaterialTexture(const aiScene* scene, uint32 mate
 			}
 		}
 	}
+	else if (aiGetMaterialColor(material, AI_MATKEY_BASE_COLOR, &color) == AI_SUCCESS ||
+			 aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color) == AI_SUCCESS)
+	{
+		return Texture{ Image{16, 16, ColorF{color.r, color.g, color.b, color.a}} };
+	}
 
 	// テクスチャがない、見つからない場合は白テクスチャを返す
 	return Texture{ Image{16, 16, Palette::White} };
@@ -257,6 +247,7 @@ void FBXModelComponent::ApplySkinning(SubMesh& sub)
 	for (size_t i = 0; i < sub.skinnedVertices.size(); ++i)
 	{
 		SkinnedVertex& vertex = sub.skinnedVertices[i];		// 直接書き換えるため、コピーではなく参照
+		
 
 		// ウェイトがないときは、元の位置をそのまま使う(頂点にボーンが割り当てられているか確認)
 		if (vertex.boneWeight.empty())

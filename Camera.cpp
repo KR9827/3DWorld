@@ -38,19 +38,6 @@ void Camera::UpdateGameObject(float deltaTime)
 		Vec3 currentPos = this->GetPosition();
 
 		SetPosition(Math::Lerp(currentPos, idealPos, 0.1f));
-
-
-		//// 対象の回転行列
-		//Mat4x4 rotationMatrix{ Mat4x4::Rotate(target->GetRotation()) };
-		//
-		//// オフセットを対象の向きに合わせて回転させる
-		//Vec3 rotateOffset{ rotationMatrix.transformPoint(m_offset) };
-		//
-		//Vec3 idealPos{ target->GetPosition() + rotateOffset };
-		//Vec3 currentPos{ this->GetPosition() };
-		//
-		//// カメラの位置(少し遅れて付いてくる)
-		//this->SetPosition(Math::Lerp(currentPos, idealPos, 0.5));		// 基底クラスの関数なので、thisがあると分かりやすくなる
 	}
 }
 
@@ -64,4 +51,17 @@ BasicCamera3D Camera::GetCamera() const
 	}
 
 	return BasicCamera3D{ Scene::Size(), 60_deg, GetPosition(), focus};
+}
+
+Vec3 Camera::GetForward() const
+{
+	Vec3 f = (GetCamera().getFocusPosition() - GetPosition());
+	f.y = 0;
+	return f.normalized();
+}
+
+Vec3 Camera::GetRight() const
+{
+	Vec3 f = GetForward();
+	return Vec3{ f.z, 0, -f.x };
 }

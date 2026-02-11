@@ -28,6 +28,8 @@ public:
 
 	void RemoveGameObject(std::shared_ptr<class GameObject> gameObject);
 
+	std::shared_ptr<class Camera> GetCamera() const { return m_camera; }
+
 private:
 	Array<std::shared_ptr<class GameObject>> m_gameObject;					// ゲームオブジェクト
 	Array<std::shared_ptr<class GameObject>> m_pendingGameObject;			// 保留中のゲームオブジェクト

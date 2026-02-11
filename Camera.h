@@ -20,6 +20,14 @@ public:
 	/// @param target 追従する対象のポインタ
 	void SetTarget(std::shared_ptr<class GameObject> target) { m_target = target; }
 
+	/// @brief 現在のカメラの向きの正面を取得
+	/// @return カメラからみた正面のVec3を返す
+	Vec3 GetForward() const;
+
+	/// @brief 現在のカメラの向きの右方向を取得
+	/// @return カメラから見た右方向のVec3を返す
+	Vec3 GetRight() const;
+
 private:
 	std::weak_ptr<class GameObject> m_target;	// ターゲットの弱参照
 	Vec3 m_offset{ 0.0, 5.0, -10.0 };					// ターゲットからカメラの位置をずらす変化量

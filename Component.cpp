@@ -16,7 +16,7 @@ Component::~Component()
 	}
 }
 
-void Component::Start()
+void Component::Initialize()
 {
 
 }
