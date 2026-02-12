@@ -92,15 +92,6 @@ void SceneGame::draw() const
 			Graphics3D::SetCameraTransform(camera);
 
 
-
-			// 3D描画の基本ステート（お約束）設定
-			//const ScopedRenderStates3D blend{ BlendState::Opaque };					// 不透明描画設定：後ろのものを透かさない
-			//const ScopedRenderStates3D depth{ DepthStencilState::Default3D };		// 深度（ｚバッファ）設定：手前を優先して後ろのものを描かない
-			//const ScopedRenderStates3D raster{ RasterizerState::Default3D };		// ラスタライズ設定：ポリゴンの裏表を判別し、裏側を描画しないようにする（カリング）
-
-			//const ScopedRenderStates3D renderStates{ BlendState::Opaque, DepthStencilState::Default3D, RasterizerState::Default3D };
-
-
 			// 座標軸を表示する（赤：X, 緑：Y, 青：Z）
 			for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{i,0,0} }.draw(Palette::Red);
 			for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{0,i,0} }.draw(Palette::Green);

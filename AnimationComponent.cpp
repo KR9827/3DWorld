@@ -21,6 +21,16 @@ void AnimationComponent::Initialize()
 	m_animations[U"Idle"] = U"Assets/fbx/Idle.fbx";
 	m_animations[U"Walk"] = U"Assets/fbx/Walking.fbx";
 	m_animations[U"Run"] = U"Assets/fbx/Running.fbx";
+	m_animations[U"Attack1"] = U"Assets/fbx/Punching.fbx";
+	m_animations[U"Attack2"] = U"Assets/fbx/Punching2.fbx";
+	m_animations[U"Attack3"] = U"Assets/fbx/Punching3.fbx";
+	m_animations[U"Attack4"] = U"Assets/fbx/MmaKick.fbx";
+	m_animations[U"Attack5"] = U"Assets/fbx/Martelo2.fbx";
+	m_animations[U"Attack6"] = U"Assets/fbx/JumpKick.fbx";
+	m_animations[U"Attack7"] = U"Assets/fbx/InsideCrescentKick.fbx";
+	m_animations[U"Attack8"] = U"Assets/fbx/HookPunch.fbx";
+	m_animations[U"Attack9"] = U"Assets/fbx/FrontKick.fbx";
+	m_animations[U"Attack10"] = U"Assets/fbx/FlyingKick.fbx";
 
 	for (auto& [key, path] : m_animations)
 	{
@@ -46,39 +56,54 @@ void AnimationComponent::Initialize()
 
 void AnimationComponent::Update(double deltaTime)
 {
-	auto owner = GetOwner().lock();
-	if (!owner) return;
+	if (m_currentAnimKey.isEmpty()) return;
+	if (!m_playing) return;
 
-	auto player = std::dynamic_pointer_cast<Player>(owner);
+	m_currentTime += deltaTime;
 
-	if (player)
+	if (m_loop)
 	{
-		String nextKey = (player->GetMove().lengthSq() > 0.1) ? U"Run" : U"Idle";
-
-		if (m_currentAnimKey != nextKey)
+		if (m_duration > 0.0)
 		{
-			this->Play(nextKey);
+			m_currentTime = fmod(m_currentTime, m_duration);
+		}
+	}
+	else
+	{
+		if (m_currentTime >= m_duration)
+		{
+			m_currentTime = m_duration;
+			m_playing = false;
+
+			if (m_currentAnimKey.starts_with(U"Attack"))
+			{
+				m_currentAnimKey.clear();
+			}
 		}
 	}
 
-	if (m_currentAnimKey.isEmpty()) return;
-
-	m_time += deltaTime;
-
-	m_skeleton->UpdateAnimation(deltaTime);
+	m_skeleton->CalculateBoneTransform(static_cast<float>(m_currentTime * m_ticks));
 }
 
-void AnimationComponent::Play(const String& key)
+void AnimationComponent::Play(const String& key, bool loop)
 {
 	if (m_currentAnimKey == key) return;
 
 	if (!m_animations.contains(key) || !m_animationScenes.contains(key)) return;
 
 	m_currentAnimKey = key;
-	m_time = 0.0;
 
 	// Skeleton側に別FBXのシーンをセットする
 	auto scene = m_animationScenes[key];
+
+	m_loop = loop;
+	m_playing = true;
+	m_currentTime = 0.0;
+
+	aiAnimation* anim = scene->mAnimations[0];
+	m_ticks = anim->mTicksPerSecond != 0.0 ? anim->mTicksPerSecond : 25.0;
+	m_duration = anim->mDuration / m_ticks;
+
 	m_skeleton->SetAnimationScene(scene, 0);
 }
 

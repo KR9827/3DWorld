@@ -26,6 +26,10 @@ public:
 	/// @param deltaTime delta時間
 	void UpdateAnimation(double deltaTime);
 
+	/// @brief ボーンの変換行列を計算する
+	/// @param animationTime アニメーションの再生時間
+	void CalculateBoneTransform(float animationTime);
+
 
 	/// @brief メッシュをもとにボーンのマッピングとウェイトの計算を行う
 	/// @param mesh 対象のメッシュ
@@ -55,7 +59,6 @@ private:
 
 	/// @brief ボーンの変換行列を計算する
 	/// @param animationTime アニメーションの再生時間
-	void CalculateBoneTransform(float animationTime);
 	void CalvulateBoneTransform_StaticPose(int32 keyFrameIndex);
 
 	/// @brief 各ノードがボーンとして使われているときfinalBoneTransformを更新する

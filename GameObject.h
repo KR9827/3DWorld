@@ -59,6 +59,21 @@ public:
 		return comp;
 	}
 
+	// ついてるコンポーネントを取得するテンプレート関数
+	template <class T, class... Args>
+	std::shared_ptr<T> GetComponent(Args&&... args)
+	{
+		for (const auto& comp : m_components)
+		{
+			auto casted = std::dynamic_pointer_cast<T>(comp);
+			if (casted)
+			{
+				return casted;
+			}
+		}
+		return nullptr;
+	}
+
 	// コンポーネントを削除する
 	void RemoveComponent(std::shared_ptr<class Component> component);
 
