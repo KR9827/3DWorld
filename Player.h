@@ -21,9 +21,22 @@ private:
 
 	class SceneGame* m_game;
 
+	struct ComboNode
+	{
+		String animNode;						// このノードで再生するアニメ
+		HashTable<char, ComboNode*> next;		// 次につながる入力
+	};
+	std::unique_ptr<ComboNode> m_root;
+	ComboNode* m_currentNode{ nullptr };
+	Array<std::unique_ptr<ComboNode>> m_nodes;
+
 	Vec3 m_move{ 0.0, 0.0, 0.0 };
 	double m_angle{ 0.0 };
 
 	int32 m_comboIndex{ 0 };
 	bool m_comboQueued{ false };
+
+	void CreateComboTree();
+	void InputCombo(std::shared_ptr<class AnimationComponent> anim, char input);
+
 };

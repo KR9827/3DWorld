@@ -29,9 +29,17 @@ public:
 	Vec3 GetRight() const;
 
 private:
-	std::weak_ptr<class GameObject> m_target;	// ターゲットの弱参照
+	std::weak_ptr<class GameObject> m_target;			// ターゲットの弱参照
 	Vec3 m_offset{ 0.0, 5.0, -10.0 };					// ターゲットからカメラの位置をずらす変化量
 
-	float m_angle{ -Math::Pi / 2.0f };
-	float m_radius{ 20.0f };
+	double m_radius{ 20.0f };
+
+	double m_yaw{ static_cast<float>(-Math::Pi) / 2.0 };	// 左右回転
+	double m_pitch{ 0.0 };									// 上下回転
+	double m_sensitivity{ 0.005 };							// カメラの感度
+
+	/// @brief カーソルが画面端に到達したら逆端に持っていく
+	/// @return ture：画面端に到達
+	bool WrapCursorAtWindowEdges();
+
 };

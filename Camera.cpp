@@ -4,7 +4,7 @@
 Camera::Camera(SceneGame* game)
 	: GameObject(game)
 {
-
+	Cursor::ClipToWindow(true);
 }
 
 Camera::~Camera()
@@ -13,31 +13,41 @@ Camera::~Camera()
 
 void Camera::UpdateGameObject(float deltaTime)
 {
+	Cursor::RequestStyle(CursorStyle::Hidden);
+
 	// 対象の動きに合わせて回転して、常に対象の背後をキープ
 	if (auto target = m_target.lock())
 	{
-		// 回転スピード
-		const float angleSpeed = 1.5f;
-		//m_angle += angleSpeed * deltaTime;
-		if (KeyRight.pressed())
+		bool warped = WrapCursorAtWindowEdges();
+
+		// マウスの移動量
+		const Vec2 mouseDelta = Cursor::DeltaF();
+
+		// マウスが端に到達してないとき
+		if (!warped)
 		{
-			m_angle += angleSpeed * deltaTime;
-		}
-		if (KeyLeft.pressed())
-		{
-			m_angle -= angleSpeed * deltaTime;
+			// 感度をかける
+			m_yaw -= mouseDelta.x * m_sensitivity;
+			m_pitch += mouseDelta.y * m_sensitivity;
 		}
 
-		Vec3 targetPos = target->GetPosition();
+		// 上下の角度を制限
+		m_pitch = Clamp(m_pitch, -0.2, 1.2);
 
-		Vec3 idealPos{ 0, 0, 0 };
-		idealPos.x = targetPos.x + cosf(m_angle) * m_radius;
-		idealPos.z = targetPos.z + sinf(m_angle) * m_radius;
-		idealPos.y = targetPos.y + 8.0f;
+		Vec3 targetPos = target->GetPosition() + Vec3{ 0.0, 5.0, 0.0 };
+
+		// 球面でカメラ位置を計算
+		Vec3 offset{ 0, 0, 0 };
+		offset.x = Math::Cos(m_pitch) * Math::Cos(m_yaw) * m_radius;
+		offset.z = Math::Cos(m_pitch) * Math::Sin(m_yaw) * m_radius;
+		offset.y = Math::Sin(m_pitch) * m_radius;
+
+		Vec3 idealPos = targetPos + offset;
 
 		Vec3 currentPos = this->GetPosition();
 
-		SetPosition(Math::Lerp(currentPos, idealPos, 0.1f));
+		float lerpFactor = 1.0f - pow(0.001f, deltaTime);
+		SetPosition(Math::Lerp(currentPos, idealPos, lerpFactor));
 	}
 }
 
@@ -53,6 +63,47 @@ BasicCamera3D Camera::GetCamera() const
 	return BasicCamera3D{ Scene::Size(), 60_deg, GetPosition(), focus};
 }
 
+bool Camera::WrapCursorAtWindowEdges()
+{
+	const Size size = Scene::Size();
+	Point pos = Cursor::Pos();
+	const double margin = 4.0;
+
+	bool warped = false;
+
+	// 左右
+	if (pos.x <= margin)
+	{
+		pos.x = size.x - margin - 2.0;
+		warped = true;
+	}
+	else if (pos.x >= size.x - margin)
+	{
+		pos.x = margin + 2.0;
+		warped = true;
+	}
+
+	// 上下
+	if (pos.y <= margin)
+	{
+		pos.y = size.y - margin - 2.0;
+		warped = true;
+	}
+	else if (pos.y >= size.y - margin)
+	{
+		pos.y = margin + 2.0;
+		warped = true;
+	}
+
+	if (warped)
+	{
+		Cursor::SetPos(pos);
+	}
+
+	return warped;
+}
+
+
 Vec3 Camera::GetForward() const
 {
 	Vec3 f = (GetCamera().getFocusPosition() - GetPosition());
@@ -65,3 +116,4 @@ Vec3 Camera::GetRight() const
 	Vec3 f = GetForward();
 	return Vec3{ f.z, 0, -f.x };
 }
+

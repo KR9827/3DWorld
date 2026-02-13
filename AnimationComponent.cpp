@@ -21,16 +21,19 @@ void AnimationComponent::Initialize()
 	m_animations[U"Idle"] = U"Assets/fbx/Idle.fbx";
 	m_animations[U"Walk"] = U"Assets/fbx/Walking.fbx";
 	m_animations[U"Run"] = U"Assets/fbx/Running.fbx";
-	m_animations[U"Attack1"] = U"Assets/fbx/Punching.fbx";
-	m_animations[U"Attack2"] = U"Assets/fbx/Punching2.fbx";
-	m_animations[U"Attack3"] = U"Assets/fbx/Punching3.fbx";
-	m_animations[U"Attack4"] = U"Assets/fbx/MmaKick.fbx";
-	m_animations[U"Attack5"] = U"Assets/fbx/Martelo2.fbx";
-	m_animations[U"Attack6"] = U"Assets/fbx/JumpKick.fbx";
-	m_animations[U"Attack7"] = U"Assets/fbx/InsideCrescentKick.fbx";
-	m_animations[U"Attack8"] = U"Assets/fbx/HookPunch.fbx";
-	m_animations[U"Attack9"] = U"Assets/fbx/FrontKick.fbx";
-	m_animations[U"Attack10"] = U"Assets/fbx/FlyingKick.fbx";
+	m_animations[U"Attack_L1"] = U"Assets/fbx/Punching.fbx";
+	m_animations[U"Attack_L2"] = U"Assets/fbx/Punching2.fbx";
+	m_animations[U"Attack_L3"] = U"Assets/fbx/Punching3.fbx";
+	m_animations[U"Attack_R1"] = U"Assets/fbx/FrontKick.fbx";
+	m_animations[U"Attack_R2"] = U"Assets/fbx/MmaKick.fbx";
+	m_animations[U"Attack_R3"] = U"Assets/fbx/Martelo2.fbx";
+	m_animations[U"Attack_R4"] = U"Assets/fbx/FlyingKick.fbx";
+	m_animations[U"Attack_L1R1"] = U"Assets/fbx/HookPunch.fbx";
+	m_animations[U"Attack_L2R1"] = U"Assets/fbx/JumpKick.fbx";
+	m_animations[U"Attack_L3R1"] = U"Assets/fbx/InsideCrescentKick.fbx";
+	
+	
+	
 
 	for (auto& [key, path] : m_animations)
 	{

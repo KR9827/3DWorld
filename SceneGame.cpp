@@ -67,7 +67,7 @@ void SceneGame::update()
 	const double deltaTime = Scene::DeltaTime();
 	for (auto& obj : m_gameObject)
 	{
-		obj->Update(deltaTime);
+		obj->Update(static_cast<float>(deltaTime));
 	}
 
 	Print << U"プレイヤーの位置：{}"_fmt(m_player->GetPosition());
