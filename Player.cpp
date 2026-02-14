@@ -1,7 +1,11 @@
 ﻿#include "Player.h"
 #include "SceneGame.h"
 #include "Camera.h"
+#include "FBXModelComponent.h"
 #include "AnimationComponent.h"
+#include "SphereColliderComponent.h"
+#include "Enemy.h"
+#include "BoxColliderComponent.h"
 
 Player::Player(SceneGame* game)
 	: GameObject(game)
@@ -16,11 +20,28 @@ Player::~Player()
 
 }
 
+void Player::Initialize()
+{
+	// コンポーネントを追加
+	auto model = AddComponent<FBXModelComponent>(U"Assets/fbx/Walking.fbx", 100);
+	AddComponent<AnimationComponent>(model->GetSkeleton(), 120);					// スケルトンのポインタをAnimationComponentに渡す
+	AddComponent<SphereColliderComponent>(80);
+
+	// コンポーネントの初期化
+	auto comps = GetAllComponents();
+	for (const auto& comp : comps)
+	{
+		comp->Initialize();
+	}
+}
+
 void Player::UpdateGameObject(float deltaTime)
 {
+	// カメラを取得
 	auto camera = m_game->GetCamera();
 	if (!camera) return;
 
+	// アニメーションコンポーネントを取得
 	auto anim = GetComponent<AnimationComponent>();
 	if (!anim) return;
 
@@ -51,6 +72,9 @@ void Player::UpdateGameObject(float deltaTime)
 		// 移動速度の設定
 		m_move = m_move.normalized();
 		this->SetPosition(this->GetPosition() + m_move * MOVE_SPEED * deltaTime);
+
+		// 移動で敵にめり込んでいたら戻す
+		ResolvePhysics();
 
 		// プレイヤーの向きを移動方向に合わせる
 		double targetAngle{ std::atan2(m_move.x, m_move.z) };			// arctanで角度を取得
@@ -133,5 +157,80 @@ void Player::InputCombo(std::shared_ptr<AnimationComponent> anim, char input)
 	{
 		m_currentNode = m_currentNode->next[input];				// ノードを次に進める
 		anim->Play(m_currentNode->animNode, false);				// そのノードのアニメを再生
+
+		m_hasHitThisAttack = false;
+	}
+}
+
+void Player::CheckAttackCollision(std::shared_ptr<AnimationComponent> anim)
+{
+	if (m_hasHitThisAttack) return;					// この攻撃がすでに当たっていたら読まない
+
+	if (!anim->IsPlayingAttack()) return;			// 攻撃してないときは当たり判定をとらない
+
+	auto enemy = m_game->GetEnemy();
+	if (!enemy) return;
+
+	auto myCollider = GetComponent<SphereColliderComponent>();
+	auto enemyCollider = enemy->GetComponent<BoxColliderComponent>();
+
+	if (!myCollider || !enemyCollider) return;
+
+	Sphere attackSphere = myCollider->GetSphere();
+	attackSphere.r += 1.5;								// 当たり判定を少し大きくする
+
+	if (attackSphere.intersects(enemyCollider->GetBox()))
+	{
+		//enemy->TakeDamage(10);
+		m_hasHitThisAttack = true;
+	}
+}
+
+void Player::ResolvePhysics()
+{
+	auto enemy = m_game->GetEnemy();
+	if (!enemy) return;
+
+	auto myCollider = GetComponent<SphereColliderComponent>();
+	auto enemyCollider = enemy->GetComponent<BoxColliderComponent>();
+	if (!myCollider || !enemyCollider) return;
+
+	Sphere playerSphere = myCollider->GetSphere();
+	Box enemyBox = enemyCollider->GetBox();
+
+	if (playerSphere.intersects(enemyBox))
+	{
+		// ボックスから球の中心に最も近い点を求める
+		Vec3 closestPoint{
+			Max(enemyBox.center.x - enemyBox.size.x / 2.0, Min(playerSphere.center.x, enemyBox.center.x + enemyBox.size.x / 2.0)),
+			Max(enemyBox.center.y - enemyBox.size.y / 2.0, Min(playerSphere.center.y, enemyBox.center.y + enemyBox.size.y / 2.0)),
+			Max(enemyBox.center.z - enemyBox.size.z / 2.0, Min(playerSphere.center.z, enemyBox.center.z + enemyBox.size.z / 2.0))
+		};
+
+		// 球の中心とその点の距離を求める
+		Vec3 delta = playerSphere.center - closestPoint;
+		double dist = delta.length();
+
+		// 球の半径より短いときは、その分だけ戻す
+		if (dist < playerSphere.r)
+		{
+			Vec3 pushDir;
+			double pushDist;
+
+			// 球の中心とボックスの端が重なった時
+			if (dist < 0.0001)
+			{
+				pushDir = Vec3{ 0, 0, 1.0 };				// 適当な方向に押す	
+				pushDist = playerSphere.r;
+			}
+			else
+			{
+				pushDir = delta / dist;						// 押し戻す方向（正規化）
+				pushDist = playerSphere.r - dist;			// 押し戻す距離
+			}
+
+			pushDir.y = 0;									// Y軸方向は押し戻さない
+			SetPosition(GetPosition() + pushDir * pushDist);
+		}
 	}
 }

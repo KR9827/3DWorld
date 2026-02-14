@@ -18,6 +18,10 @@ GameObject::~GameObject()
 	m_components.clear();
 }
 
+void GameObject::Initialize()
+{
+}
+
 void GameObject::Update(float deltaTime)
 {
 	if (m_state == Active)

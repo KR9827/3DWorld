@@ -15,6 +15,8 @@ public:
 	GameObject(class SceneGame* game);
 	virtual ~GameObject();
 
+	virtual void Initialize();
+
 	void Update(float deltaTime);
 	void UpdateComponents(float deltaTime);
 	virtual void UpdateGameObject(float deltaTime);
@@ -59,7 +61,7 @@ public:
 		return comp;
 	}
 
-	// ついてるコンポーネントを取得するテンプレート関数
+	// ついてるコンポーネントを1つ取得するテンプレート関数
 	template <class T, class... Args>
 	std::shared_ptr<T> GetComponent(Args&&... args)
 	{
@@ -74,8 +76,12 @@ public:
 		return nullptr;
 	}
 
+	// ついてるコンポーネントを全部取得するテンプレート関数
+	Array<std::shared_ptr<class Component>> GetAllComponents() const { return m_components; }
+
 	// コンポーネントを削除する
 	void RemoveComponent(std::shared_ptr<class Component> component);
+
 
 private:
 	State m_state;

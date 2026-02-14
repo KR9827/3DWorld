@@ -28,6 +28,7 @@ public:
 
 	void RemoveGameObject(std::shared_ptr<class GameObject> gameObject);
 
+	std::shared_ptr<class Enemy> GetEnemy() const { return m_enemy; }
 	std::shared_ptr<class Camera> GetCamera() const { return m_camera; }
 
 private:
@@ -35,6 +36,7 @@ private:
 	Array<std::shared_ptr<class GameObject>> m_pendingGameObject;			// 保留中のゲームオブジェクト
 
 	std::shared_ptr<class Player> m_player;
+	std::shared_ptr<class Enemy> m_enemy;
 	std::shared_ptr<class Camera> m_camera;
 
 	bool m_updatingGameObject;												// ゲームオブジェクトを更新しているかどうか
@@ -42,8 +44,4 @@ private:
 
 	ColorF m_backgroundColor;
 	MSRenderTexture m_renderTexture;
-
-
-
-	Sphere m_sphere;
 };

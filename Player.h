@@ -8,6 +8,8 @@ public:
 	Player(class SceneGame* game);
 	~Player();
 
+	void Initialize() override;
+
 	/// @brief 更新処理
 	/// @param deltaTime 前フレームからの経過時間
 	void UpdateGameObject(float deltaTime) override;
@@ -30,13 +32,18 @@ private:
 	ComboNode* m_currentNode{ nullptr };
 	Array<std::unique_ptr<ComboNode>> m_nodes;
 
-	Vec3 m_move{ 0.0, 0.0, 0.0 };
-	double m_angle{ 0.0 };
+	Vec3 m_move{ 0.0, 0.0, 0.0 };				// プレイヤーの移動方向
+	double m_angle{ 0.0 };						// プレイヤーの向いている方向
+	int32 m_comboIndex{ 0 };					// 現在のコンボのインデックス
 
-	int32 m_comboIndex{ 0 };
-	bool m_comboQueued{ false };
+	bool m_hasHitThisAttack{ false };			// 攻撃がヒットしたかどうか（当たり判定）
 
 	void CreateComboTree();
 	void InputCombo(std::shared_ptr<class AnimationComponent> anim, char input);
+
+	// 敵と自分の攻撃の当たり判定
+	void CheckAttackCollision(std::shared_ptr<class AnimationComponent> anim);
+
+	void ResolvePhysics();
 
 };

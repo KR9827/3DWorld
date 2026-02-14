@@ -14,7 +14,7 @@ public:
 	virtual void Draw() const;
 	virtual void OnUpdateWorldTransform() {}
 
-	std::weak_ptr<class GameObject> GetOwner() { return m_owner; }
+	std::weak_ptr<class GameObject> GetOwner() const { return m_owner; }
 	int GetUpdateOrder() const { return m_updateOrder; }
 protected:
 	std::weak_ptr<class GameObject> m_owner;

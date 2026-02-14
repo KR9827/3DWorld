@@ -8,7 +8,7 @@ AnimationComponent::AnimationComponent(std::weak_ptr<GameObject> owner, std::sha
 	: Component(owner, updateOrder)
 	, m_skeleton(skeleton)
 {
-	Initialize();
+	
 }
 
 AnimationComponent::~AnimationComponent()

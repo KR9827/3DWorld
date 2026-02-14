@@ -45,35 +45,6 @@ void Skeleton::SetAnimationScene(const aiScene* scene, int32 index)
 	m_globalInverseTransform = globalInverse;
 }
 
-//void Skeleton::UpdateAnimation(double deltaTime)
-//{
-//	if (!m_currentAnimScene || m_currentAnimScene->mNumAnimations == 0)
-//	{
-//		return;
-//	}
-//
-//	aiAnimation* animation{ m_currentAnimScene->mAnimations[m_currentAnimationIndex] };
-//	if (!animation)
-//	{
-//		Console << U"Error：mAnimations[m_currentAnimationIndex]がnullptrです";
-//		return;
-//	}
-//
-//	double ticks{ animation->mTicksPerSecond != 0.0 ? animation->mTicksPerSecond : 25.0 };
-//	double durationInSeconds{ animation->mDuration / ticks };
-//	m_currentTime += deltaTime;
-//
-//	// ループ再生
-//	//if (m_currentTime > durationInSeconds)
-//	//{
-//	//	m_currentTime = fmod(m_currentTime, durationInSeconds);
-//	//}
-//
-//	//Console << U"Animation TickPerSecond:" << animation->mTicksPerSecond;
-//	CalculateBoneTransform(static_cast<float>(m_currentTime * ticks));
-//}
-
-
 void Skeleton::CalculateBoneCount()
 {
 	std::unordered_set<std::string> boneName;
