@@ -189,6 +189,7 @@ void Skeleton::ReadNodeHierarchy(float animationTime, const aiNode* node, const 
 	}
 
 	aiMatrix4x4 globalTransform = parentTransform * nodeTransform;
+	m_globalBoneTransforms[Unicode::FromUTF8(nodeName)] = globalTransform;
 
 	// ボーン行列を更新
 	if (m_boneMapping.contains(nodeName))
@@ -312,4 +313,15 @@ void Skeleton::DisplayAnimationTime() const
 bool Skeleton::IsAssimpHelperNode(const std::string& name)
 {
 	return name.find("$AssimpFbx$") != std::string::npos;
+}
+
+aiMatrix4x4 Skeleton::GetBoneGlobalTransform(const String& name) const
+{
+	auto it = m_globalBoneTransforms.find(name);
+	if (it != m_globalBoneTransforms.end())
+	{
+		return it->second;
+	}
+
+	return aiMatrix4x4();
 }

@@ -77,6 +77,7 @@ void SceneGame::update()
 	Print << U"プレイヤーの角度：{}"_fmt(m_player->GetRotation());
 	Print << U"カメラの位置：{}"_fmt(m_camera->GetPosition());
 	Print << U"カメラの角度：{}"_fmt(m_camera->GetRotation());
+	Print << U"攻撃の当たり判定の位置：{}"_fmt(m_player->GetBonePos());
 }
 
 void SceneGame::draw() const
@@ -107,6 +108,7 @@ void SceneGame::draw() const
 				obj->Draw();
 			}
 
+			m_player->GetAttackSphere().draw(ColorF{ Palette::Red });
 		}
 
 		Graphics3D::Flush();

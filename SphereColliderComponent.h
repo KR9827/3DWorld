@@ -11,9 +11,6 @@ public:
 
 	Sphere GetSphere() const ;
 
-	bool Intersects(const SphereColliderComponent& other) const { return GetSphere().intersects(other.GetSphere()); }
-
-
 	double m_radius{ 2.0 };
 
 	void Draw() const override;

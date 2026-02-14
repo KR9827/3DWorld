@@ -11,8 +11,6 @@ public:
 	Box GetBox() const;
 	void Draw() const override;
 
-	bool Intersects(const BoxColliderComponent& other) const { return GetBox().intersects(other.GetBox()); }
-
 	void SetSize(const Vec3& size) { m_size = size; }
 
 	Vec3 m_size{ 1.0, 1.0, 1.0 };

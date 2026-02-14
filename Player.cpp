@@ -51,6 +51,8 @@ void Player::UpdateGameObject(float deltaTime)
 	if (MouseL.down()) InputCombo(anim, 'L');
 	if (MouseR.down()) InputCombo(anim, 'R');
 
+	CheckAttackCollision(anim);
+
 	if (anim->IsPlayingAttack()) return;
 
 
@@ -102,16 +104,16 @@ void Player::CreateComboTree()
 	m_root = std::make_unique<ComboNode>(ComboNode{ U"", {} });
 
 	// 各ノードの登録
-	auto L1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L1", {} });
-	auto L2 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L2", {} });
-	auto L3 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L3", {} });
-	auto R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R1", {} });
-	auto R2 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R2", {} });
-	auto R3 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R3", {} });
-	auto R4 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R4", {} });
-	auto L1R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L1R1", {} });
-	auto L2R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L2R1", {} });
-	auto L3R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L3R1", {} });
+	auto L1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L1", U"mixamorig:LeftHand", {}});
+	auto L2 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L2", U"mixamorig:RightHand", {} });
+	auto L3 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L3", U"mixamorig:RightHand", {} });
+	auto R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R1", U"mixamorig:LeftFoot", {} });
+	auto R2 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R2", U"mixamorig:RightFoot", {} });
+	auto R3 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R3", U"mixamorig:LeftFoot", {} });
+	auto R4 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R4", U"mixamorig:LeftFoot", {} });
+	auto L1R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L1R1", U"mixamorig:RightHand", {} });
+	auto L2R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L2R1", U"mixamorig:LeftFoot", {} });
+	auto L3R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L3R1", U"mixamorig:RightFoot", {} });
 
 	// コンボ登録
 	L1->next['L'] = L2.get();
@@ -168,21 +170,33 @@ void Player::CheckAttackCollision(std::shared_ptr<AnimationComponent> anim)
 
 	if (!anim->IsPlayingAttack()) return;			// 攻撃してないときは当たり判定をとらない
 
+	// 今のノードの攻撃判定を出すボーンの名前を取得
+	String boneName = m_currentNode->boneName;
+	//std::string boneName = b.narrow();				// Stringからstd::stringに変換
+
+	auto modelComp = GetComponent<FBXModelComponent>();
 	auto enemy = m_game->GetEnemy();
 	if (!enemy) return;
 
-	auto myCollider = GetComponent<SphereColliderComponent>();
+	// ボーンの位置をワールド座標で取得
+	Mat4x4 boneMatrix = modelComp->GetBoneTransform(boneName);
+	Mat4x4 worldMatrix = boneMatrix * GetWorldTransform();
+
+	// ボーンの位置を球の中心にする
+	Vec3 bonePos = worldMatrix.transformPoint(Vec3::Zero());
+	Sphere attackSphere{ bonePos, 1.0 };						// 攻撃判定用の球
+	// 仮
+	m_bonePos = bonePos;
+	m_Sphere = attackSphere;
+
+
+
+	// 敵の当たり判定用ボックスと交差してる時
 	auto enemyCollider = enemy->GetComponent<BoxColliderComponent>();
-
-	if (!myCollider || !enemyCollider) return;
-
-	Sphere attackSphere = myCollider->GetSphere();
-	attackSphere.r += 1.5;								// 当たり判定を少し大きくする
-
-	if (attackSphere.intersects(enemyCollider->GetBox()))
+	if (enemyCollider && attackSphere.intersects(enemyCollider->GetBox()))
 	{
-		//enemy->TakeDamage(10);
 		m_hasHitThisAttack = true;
+		// enemy->TakeDamage(10);
 	}
 }
 

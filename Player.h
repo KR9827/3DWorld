@@ -18,14 +18,19 @@ public:
 	/// @return 移動方向
 	Vec3 GetMove() const { return m_move; }
 
+	Sphere GetAttackSphere() const { return m_Sphere; }
+	Vec3 GetBonePos() const { return m_bonePos; }
+
 private:
 	static constexpr double MOVE_SPEED{ 20.0 };				// 移動速度
 
 	class SceneGame* m_game;
 
+	// コンボシステムのノード構造
 	struct ComboNode
 	{
 		String animNode;						// このノードで再生するアニメ
+		String boneName;						// このノードで攻撃判定を出すボーンの名前
 		HashTable<char, ComboNode*> next;		// 次につながる入力
 	};
 	std::unique_ptr<ComboNode> m_root;
@@ -45,5 +50,10 @@ private:
 	void CheckAttackCollision(std::shared_ptr<class AnimationComponent> anim);
 
 	void ResolvePhysics();
+
+
+	// 仮
+	Sphere m_Sphere;
+	Vec3 m_bonePos;
 
 };

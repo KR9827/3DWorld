@@ -30,7 +30,7 @@ public:
 	void Update(double deltaTime) override;
 	void Draw() const override;
 
-
+	Mat4x4 GetBoneTransform(const String& boneName) const;
 	std::shared_ptr<class Skeleton> GetSkeleton() const { return m_skeleton; }
 
 private:
@@ -42,7 +42,6 @@ private:
 		Array<TriangleIndex32> indices;							// インデックス
 		Texture texture;										// テクスチャ
 	};
-
 
 	std::shared_ptr<class Skeleton> m_skeleton;
 

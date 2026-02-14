@@ -41,6 +41,7 @@ public:
 	int32 GetCurrentAnimationIndex() const { return m_currentAnimationIndex; }
 	const Array<aiMatrix4x4>& GetFinalBoneTransform() const { return m_finalBoneTransform; }
 	void  SetGlobalinverseTransform(const aiMatrix4x4 matrix) { m_globalInverseTransform = matrix; }
+	aiMatrix4x4 GetBoneGlobalTransform(const String& name) const;
 
 private:
 	const aiScene* m_scene{ nullptr };							// fbxモデルデータ
@@ -50,6 +51,7 @@ private:
 	aiMatrix4x4 m_globalInverseTransform;						// シーン全体のルートノードのグローバル変換行列の逆行列
 	HashTable<std::string, int32> m_boneMapping;				// ボーンマッピング用の連想配列
 	Array<aiMatrix4x4> m_boneOffsetMatrices;					// オフセット行列
+	HashTable<String, aiMatrix4x4> m_globalBoneTransforms;		// グローバル変換行列
 	Array<aiMatrix4x4> m_finalBoneTransform;					// ボーンの最終変換行列
 
 	// == 再生ループのための補助関数 ==
