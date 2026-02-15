@@ -28,6 +28,11 @@ public:
 	/// @return カメラから見た右方向のVec3を返す
 	Vec3 GetRight() const;
 
+	/// @brief 揺れを開始する
+	/// @param duration 揺れの時間
+	/// @param power 揺れの強さ
+	void StartShake(double duration, double power);
+
 private:
 	std::weak_ptr<class GameObject> m_target;			// ターゲットの弱参照
 	Vec3 m_offset{ 0.0, 5.0, -10.0 };					// ターゲットからカメラの位置をずらす変化量
@@ -37,6 +42,12 @@ private:
 	double m_yaw{ static_cast<float>(-Math::Pi) / 2.0 };	// 左右回転
 	double m_pitch{ 0.0 };									// 上下回転
 	double m_sensitivity{ 0.005 };							// カメラの感度
+
+	// 爆発の揺れ用
+	double m_shakeTime{ 0.0 };
+	double m_shakeDuration{ 0.0 };
+	double m_shakePower{ 0.0 };
+	Vec3 m_shakeOffset{ 0, 0, 0 };
 
 	/// @brief カーソルが画面端に到達したら逆端に持っていく
 	/// @return ture：画面端に到達

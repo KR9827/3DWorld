@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Camera.h"
+#include "Explosion.h"
 
 SceneGame::SceneGame(const InitData& init)
 	: IScene(init)
@@ -46,6 +47,15 @@ bool SceneGame::SystemInit()
 	m_enemy = AddGameObject<Enemy>();
 	m_enemy->SetPosition(Vec3{ 0.0, 0.0, 15.0 });
 
+	m_gameState = GameState::WaitStart;
+	m_countdown = 0.0;
+
+	// フォントのパス設定
+	const FilePath path = (FileSystem::GetFolderPath(SpecialFolder::SystemFonts) + U"HGRSGU.TTC");		// Windows内のフォント
+	// フォントの生成
+	m_waitStartFont = Font{ FontMethod::MSDF, 80, path };
+	m_countdownFont = Font{ FontMethod::MSDF, 80, path };
+	m_timeLimitFount = Font{ FontMethod::MSDF, 60, path };
 
 	for (const auto& obj : m_gameObject)
 	{
@@ -64,23 +74,93 @@ void SceneGame::update()
 {
 	ClearPrint();
 
+	const double dt = Scene::DeltaTime();
+	auto& data = getData();
+
+	// ゲームの状態遷移
+	switch (m_gameState)
+	{
+	case GameState::WaitStart:
+		if (MouseL.down())
+		{
+			m_countdown = COUNTDOWN_TIME;
+			m_gameState = GameState::Countdown;
+		}
+		break;
+
+	case GameState::Countdown:
+		m_countdown -= dt;
+		if (m_countdown <= -1.0)
+		{
+			m_countdown = TIME_LIMIT;
+			m_gameState = GameState::Playing;
+		}
+		break;
+
+	case GameState::Playing:
+		m_countdown -= dt;
+
+		// ゲームオブジェクトの更新
+		for (auto& obj : m_gameObject)
+		{
+			obj->Update(static_cast<float>(dt));
+		}
+
+		// 成功か失敗の判定
+		if (m_enemy && m_enemy->GetHP() <= 0)
+		{
+			// 爆発エフェクトの生成
+			m_explosion = AddGameObject<Explosion>();
+			m_explosion->SetPosition(m_enemy->GetPosition());
+			m_explosion->Initialize();
+
+			RemoveGameObject(m_enemy);
+			m_enemy.reset();
+
+			m_camera->StartShake(1.0, 2.0);		// カメラを揺らす
+
+			m_gameState = GameState::Exploding;
+		}
+		else if (m_countdown <= 0.0)
+		{
+			m_gameState = GameState::Failed;
+		}
+
+		break;
+
+	case GameState::Exploding:
+		m_camera->UpdateGameObject(dt);
+		if (m_explosion)
+		{
+			m_explosion->Update(static_cast<float>(dt));
+
+			if (m_explosion->isFinished())
+			{
+				RemoveGameObject(m_explosion);
+				m_explosion.reset();
+				m_gameState = GameState::Clear;
+			}
+		}
+
+		break;
+
+	case GameState::Clear:
+		Print << U"success!";
+		data.isClear = true;
+		changeScene(SceneState::RESULT);
+		break;
+
+	case GameState::Failed:
+		Print << U"Failed...";
+		data.isClear = false;
+		changeScene(SceneState::RESULT);
+		break;
+	}
+
 	if (KeyEnter.down())
 	{
 		changeScene(SceneState::RESULT);
 	}
-
-	const double deltaTime = Scene::DeltaTime();
-	for (auto& obj : m_gameObject)
-	{
-		obj->Update(static_cast<float>(deltaTime));
-	}
-
-	Print << U"プレイヤーの位置：{}"_fmt(m_player->GetPosition());
-	Print << U"プレイヤーの角度：{}"_fmt(m_player->GetRotation());
-	Print << U"カメラの位置：{}"_fmt(m_camera->GetPosition());
-	Print << U"カメラの角度：{}"_fmt(m_camera->GetRotation());
-	Print << U"攻撃の当たり判定の位置：{}"_fmt(m_player->GetBonePos());
-	Print << U"敵のHP：{}"_fmt(m_enemy->GetHP());
 }
 
 void SceneGame::draw() const
@@ -100,9 +180,9 @@ void SceneGame::draw() const
 
 
 			// 座標軸を表示する（赤：X, 緑：Y, 青：Z）
-			for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{i,0,0} }.draw(Palette::Red);
-			for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{0,i,0} }.draw(Palette::Green);
-			for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{0,0,i} }.draw(Palette::Blue);
+			//for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{i,0,0} }.draw(Palette::Red);
+			//for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{0,i,0} }.draw(Palette::Green);
+			//for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{0,0,i} }.draw(Palette::Blue);
 
 			// 地面の描画
 			m_groundMesh.draw(m_groundTexture);
@@ -114,7 +194,7 @@ void SceneGame::draw() const
 			}
 
 			// プレイヤーの攻撃の当たり判定を表示（デバッグ用）
-			m_player->GetAttackSphere().draw(ColorF{ Palette::Red });
+			//m_player->GetAttackSphere().draw(ColorF{ Palette::Red });
 		}
 
 		Graphics3D::Flush();
@@ -126,8 +206,33 @@ void SceneGame::draw() const
 	// 2D描画
 	// ------------------------
 	{
-		// 敵のHPバーを描画
-		m_enemy->HPBarDraw();
+		// 状態遷移に応じた描画
+		if (m_gameState == GameState::WaitStart)
+		{
+			const Vec2 pos{ Scene::Width() / 2.0, Scene::Height() * 3.0 / 10.0 };
+			m_waitStartFont(U"左クリックでスタート").drawAt(pos, ColorF{ Palette::Black });
+		}
+		else if (m_gameState == GameState::Countdown)
+		{
+			// カウントダウンの描画
+			if (m_countdown > 2.0)		m_countdownFont(U"3").drawAt(Scene::CenterF(), ColorF{ Palette::Black });
+			else if (m_countdown > 1.0) m_countdownFont(U"2").drawAt(Scene::CenterF(), ColorF{ Palette::Black });
+			else if (m_countdown > 0.0) m_countdownFont(U"1").drawAt(Scene::CenterF(), ColorF{ Palette::Black });
+			else						m_countdownFont(U"スタート").drawAt(Scene::CenterF(), ColorF{ Palette::Black });
+		}
+		else if (m_gameState == GameState::Playing || m_gameState == GameState::Exploding)
+		{
+			// 制限時間の描画
+			const double time = Max(0.0, m_countdown);
+			const Vec2 pos{ Scene::Width() / 2.0, Scene::Height() / 10.0 };
+			m_timeLimitFount(U"制限時間：{:.0f}"_fmt(time)).drawAt(pos, ColorF{ Palette::Black });
+
+			// 敵のHPバーを描画
+			if (m_enemy)
+			{
+				m_enemy->HPBarDraw();
+			}
+		}		
 	}
 }
 

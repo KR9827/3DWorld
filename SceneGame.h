@@ -26,7 +26,7 @@ public:
 		return obj;
 	}
 
-	void RemoveGameObject(std::shared_ptr<class GameObject> gameObject);
+	void RemoveGameObject(std::shared_ptr<class GameObject> gameObject) { m_gameObject.remove(gameObject); }
 
 	std::shared_ptr<class Enemy> GetEnemy() const { return m_enemy; }
 	std::shared_ptr<class Camera> GetCamera() const { return m_camera; }
@@ -38,12 +38,34 @@ private:
 	std::shared_ptr<class Player> m_player;
 	std::shared_ptr<class Enemy> m_enemy;
 	std::shared_ptr<class Camera> m_camera;
+	std::shared_ptr<class Explosion> m_explosion;
+
+	enum class GameState
+	{
+		WaitStart,
+		Countdown,
+		Playing,
+		Exploding,
+		Clear,
+		Failed,
+
+		Max,
+	};
+
+	GameState m_gameState;
+
+	// 最初のカウントダウンと制限時間の変数
+	double m_countdown;
+	static constexpr double COUNTDOWN_TIME{ 3.0 };
+	static constexpr double TIME_LIMIT{ 60.0 };
+	Font m_waitStartFont;
+	Font m_countdownFont;
+	Font m_timeLimitFount;
 
 	bool m_updatingGameObject;												// ゲームオブジェクトを更新しているかどうか
 
-
-	ColorF m_backgroundColor;
-	MSRenderTexture m_renderTexture;
+	ColorF m_backgroundColor;			// 背景色
+	MSRenderTexture m_renderTexture;	// マルチサンプルレンダーテクスチャ
 
 	Mesh m_groundMesh;					// 地面のメッシュ
 	Texture m_groundTexture;			// 地面のテクスチャ

@@ -22,6 +22,7 @@ public:
 	virtual void UpdateGameObject(float deltaTime);
 
 	void Draw() const;
+	virtual void DrawGameObject() const;
 
 	// ===== ゲッター/セッター
 	// 位置
@@ -38,6 +39,9 @@ public:
 	const Mat4x4 GetWorldTransform() const { return m_worldTransform; }
 
 	class SceneGame* GetSceneGame() { return m_game; }
+
+	State GetState() const { return m_state; }
+	void SetState(State state) { m_state = state; }
 
 	// コンポーネントを追加するテンプレート関数
 	template <class T, class... Args>

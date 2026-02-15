@@ -60,8 +60,6 @@ void Enemy::TakeDamage(const int32& damage)
 	if (m_HP <= 0)
 	{
 		m_HP = 0;
-
-		// 死亡処理
 	}
 }
 

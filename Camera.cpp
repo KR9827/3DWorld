@@ -47,7 +47,25 @@ void Camera::UpdateGameObject(float deltaTime)
 		Vec3 currentPos = this->GetPosition();
 
 		float lerpFactor = 1.0f - pow(0.001f, deltaTime);
-		SetPosition(Math::Lerp(currentPos, idealPos, lerpFactor));
+		Vec3 smoothPos = Math::Lerp(currentPos, idealPos, lerpFactor);
+		smoothPos += m_shakeOffset;
+		SetPosition(smoothPos);
+	}
+
+	// カメラの揺れの処理
+	if (m_shakeTime < m_shakeDuration)
+	{
+		m_shakeTime += deltaTime;
+
+		double progress = 1.0 - (m_shakeTime / m_shakeDuration);
+
+		m_shakeOffset.x = 0;
+		m_shakeOffset.y = Random(-1.0, 1.0) * m_shakePower * progress;
+		m_shakeOffset.z = 0;
+	}
+	else
+	{
+		m_shakeOffset = Vec3::Zero();
 	}
 }
 
@@ -101,6 +119,13 @@ bool Camera::WrapCursorAtWindowEdges()
 	}
 
 	return warped;
+}
+
+void Camera::StartShake(double duration, double power)
+{
+	m_shakeDuration = duration;
+	m_shakeTime = 0.0;
+	m_shakePower = power;
 }
 
 

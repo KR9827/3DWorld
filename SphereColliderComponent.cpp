@@ -24,5 +24,5 @@ Sphere SphereColliderComponent::GetSphere() const
 
 void SphereColliderComponent::Draw() const
 {
-	DrawDebug();
+	//DrawDebug();
 }

@@ -51,16 +51,22 @@ void GameObject::Draw() const
 {
 	if (m_state == Active)
 	{
+		DrawGameObject();
+
 		for (const auto& comp : m_components)
 		{
 			comp->Draw();
 		}
 	}
-	else
-	{
-		Console << U"m_state != Active";
-		return;
-	}
+	//else
+	//{
+	//	Console << U"m_state != Active";
+	//	return;
+	//}
+}
+
+void GameObject::DrawGameObject() const
+{
 }
 
 

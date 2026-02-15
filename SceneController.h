@@ -10,12 +10,12 @@ enum class SceneState
 };
 
 // シーン間で共有するデータ
-struct SceneData
+struct ShareData
 {
-
+	bool isClear;
 };
 
-using App = SceneManager<SceneState, SceneData>;
+using App = SceneManager<SceneState, ShareData>;
 
 class SceneController
 {

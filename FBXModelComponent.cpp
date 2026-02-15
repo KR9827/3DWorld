@@ -83,7 +83,7 @@ FBXModelComponent::FBXModelComponent(std::weak_ptr<GameObject> owner, const File
 
 FBXModelComponent::~FBXModelComponent()
 {
-	Console << U"FBXModelComponentが破棄されました";
+	//Console << U"FBXModelComponentが破棄されました";
 }
 
 void FBXModelComponent::Initialize()
