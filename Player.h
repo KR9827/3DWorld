@@ -31,6 +31,7 @@ private:
 	{
 		String animNode;						// このノードで再生するアニメ
 		String boneName;						// このノードで攻撃判定を出すボーンの名前
+		int32 damage;							// このノードの攻撃力
 		HashTable<char, ComboNode*> next;		// 次につながる入力
 	};
 	std::unique_ptr<ComboNode> m_root;

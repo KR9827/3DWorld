@@ -26,7 +26,7 @@ bool SceneController::SystemInit()
 	m_manager->add<SceneResult>(SceneState::RESULT);
 
 	// 最初のシーンを初期化(フェードインをなくす)
-	m_manager->init(SceneState::GAME, 0s);
+	m_manager->init(SceneState::TITLE, 0s);
 
 	return true;
 }

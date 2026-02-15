@@ -27,7 +27,9 @@ bool SceneGame::SystemInit()
 	Graphics3D::SetGlobalAmbientColor(ColorF{ 0.75, 0.75, 0.75 });			// 環境光の設定
 	Graphics3D::SetSunDirection(Vec3{ 0.3, 10.0, 0.2 });					// 太陽の方向
 	Graphics3D::SetSunColor(ColorF{ 1.0 });									// 太陽光の設定
-	
+
+	m_groundMesh = Mesh{ MeshData::OneSidedPlane(2000, {400, 400}) };
+	m_groundTexture = Texture{ U"example/texture/ground.jpg", TextureDesc::MippedSRGB };
 
 	// プレイヤーの生成
 	m_player = AddGameObject<Player>();
@@ -78,6 +80,7 @@ void SceneGame::update()
 	Print << U"カメラの位置：{}"_fmt(m_camera->GetPosition());
 	Print << U"カメラの角度：{}"_fmt(m_camera->GetRotation());
 	Print << U"攻撃の当たり判定の位置：{}"_fmt(m_player->GetBonePos());
+	Print << U"敵のHP：{}"_fmt(m_enemy->GetHP());
 }
 
 void SceneGame::draw() const
@@ -101,13 +104,16 @@ void SceneGame::draw() const
 			for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{0,i,0} }.draw(Palette::Green);
 			for (int i = 0; i < 10; ++i) Line3D{ Vec3{0,0,0}, Vec3{0,0,i} }.draw(Palette::Blue);
 
+			// 地面の描画
+			m_groundMesh.draw(m_groundTexture);
 
-
+			// ゲームオブジェクトの描画
 			for (const auto& obj : m_gameObject)
 			{
 				obj->Draw();
 			}
 
+			// プレイヤーの攻撃の当たり判定を表示（デバッグ用）
 			m_player->GetAttackSphere().draw(ColorF{ Palette::Red });
 		}
 
@@ -120,7 +126,8 @@ void SceneGame::draw() const
 	// 2D描画
 	// ------------------------
 	{
-		
+		// 敵のHPバーを描画
+		m_enemy->HPBarDraw();
 	}
 }
 

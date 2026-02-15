@@ -44,4 +44,7 @@ private:
 
 	ColorF m_backgroundColor;
 	MSRenderTexture m_renderTexture;
+
+	Mesh m_groundMesh;					// 地面のメッシュ
+	Texture m_groundTexture;			// 地面のテクスチャ
 };
