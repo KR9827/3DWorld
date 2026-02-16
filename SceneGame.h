@@ -39,20 +39,24 @@ private:
 	std::shared_ptr<class Enemy> m_enemy;
 	std::shared_ptr<class Camera> m_camera;
 	std::shared_ptr<class Explosion> m_explosion;
+	std::unique_ptr<class OptionGame> m_optionGame;
 
 	enum class GameState
 	{
+		None,
 		WaitStart,
 		Countdown,
 		Playing,
 		Exploding,
 		Clear,
 		Failed,
+		Option,
 
 		Max,
 	};
 
 	GameState m_gameState;
+	GameState m_prevState;
 
 	// 最初のカウントダウンと制限時間の変数
 	double m_countdown;

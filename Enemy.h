@@ -10,14 +10,18 @@ public:
 
 	void Initialize() override;
 	void UpdateGameObject(float deltaTime) override;
+	void DrawGameObject() const override;
 
 	void TakeDamage(const int32& damage);
+
 
 	void HPBarDraw() const;
 
 	int32 GetHP() const { return m_HP; }
 
 private:
+	Model m_rockModel;
+
 	Vec3 m_size;
 
 	int32 m_HP;

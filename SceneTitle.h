@@ -35,22 +35,21 @@ private:
 
 	// 選択肢の位置や大きさの定数
 	const Vec2 m_selectPos{ Scene::Width() / 2.0, Scene::Height() * 3.0 / 5.0 };							// 選択肢の中央座標
-	const Vec2 m_selectSize{ Scene::Width() / 3.0, Scene::Height() / 22.0 };								// 選択肢の縦と横の幅
+	const Vec2 m_selectSize{ Scene::Width() / 4.0, Scene::Height() / 22.0 };								// 選択肢の縦と横の幅
 	const Vec2 m_selectInterval{ 0.0, Scene::Height() / 12.0 };												// 選択肢の縦の間隔
 	const Vec2 m_exitPos{ Scene::Center().x - Scene::Width() / 6.0, Scene::Center().y + Scene::Height() / 10.0 };
-	const Vec2 m_exitSize{ Scene::Width() / 10.0, Scene::Height() / 10.0 };
+	const Vec2 m_exitSize{ Scene::Width() / 8.0, Scene::Height() / 20.0 };
 	const Vec2 m_exitInterval{ Scene::Width() / 3.0 , 0 };
 
 	Font m_titleFont;									// タイトルのフォント
 	Font m_exitFont;									// 終了選択肢のフォント
 
+	Texture m_titleBG;
+
+	std::unique_ptr<class OptionTitle> m_optionTitle;
 
 	void UpdateStateInit();
 	void UpdateStateExit();
 	void DrawStateInit() const;
 	void DrawStateExit() const;
-
-
-
-
 };

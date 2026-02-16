@@ -22,6 +22,13 @@ bool SceneResult::SystemInit()
 	m_selectNames << Font{ FontMethod::MSDF, 40 }(U"リトライ");
 	m_selectNames << Font{ FontMethod::MSDF, 40 }(U"タイトルに戻る");
 
+	// 背景画像のロード
+	Image image = Image{ U"Assets/texture/ClearBG.png" };
+	m_clearBG = Texture{ image };
+	image = Image{ U"Assets/texture/FailedBG.png" };
+	m_FailedBG = Texture{ image };
+	image.release();
+
 	return true;
 }
 
@@ -48,7 +55,7 @@ void SceneResult::update()
 	const double dt = Scene::DeltaTime();
 
 	m_timer += dt;
-	if (m_timer >= 2.0 || MouseL.down())
+	if (m_timer >= 2.0 || MouseL.up())
 	{
 		m_isShowSelect = true;
 	}
@@ -82,8 +89,14 @@ void SceneResult::draw() const
 {
 	Scene::SetBackground(ColorF{ Palette::Green });
 
+	
+
 	// 結果の表示
 	const auto& data = getData();
+
+	const Vec2 pos{ 0.0, 0.0 };
+	data.isClear ? m_clearBG.draw(pos) : m_FailedBG.draw(pos);
+
 	const String resultText = data.isClear ? U"クリア！！" : U"失敗...";
 	const ColorF resultColor = data.isClear ? ColorF{ Palette::Gold } : ColorF{ Palette::Firebrick };
 	const Vec2 fontPos{ Scene::Width() / 2.0, Scene::Height() * 3.0 / 10.0 };

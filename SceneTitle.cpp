@@ -1,7 +1,11 @@
 ﻿#include "SceneTitle.h"
+#include "OptionTitle.h"
+#include "Settings.h"
+#include "AudioManager.h"
 
 SceneTitle::SceneTitle(const InitData& init)
 	: IScene(init)
+	, m_optionTitle(nullptr)
 {
 	SystemInit();
 	GameInit();
@@ -14,22 +18,33 @@ SceneTitle::~SceneTitle()
 
 bool SceneTitle::SystemInit()
 {
+	const auto& data = getData();
+
+	m_optionTitle = std::make_unique<OptionTitle>(data.settings, data.audio);
+	if (m_optionTitle == nullptr) return false;
+	if (!m_optionTitle->SystemInit()) return false;
+
 	// フォントのパス設定
 	const FilePath path = (FileSystem::GetFolderPath(SpecialFolder::SystemFonts) + U"HGRSGU.TTC");		// Windows内の
 	// タイトル画面のフォント設定
-	m_titleFont = { FontMethod::MSDF, 80, path };
+	m_titleFont = { FontMethod::MSDF, 100, path };
 
 	// 選択肢の文字設定
-	m_selectNames << Font{ FontMethod::MSDF, 20, path }(U"スタート");
-	m_selectNames << Font{ FontMethod::MSDF, 20, path }(U"設定");
-	m_selectNames << Font{ FontMethod::MSDF, 20, path }(U"終了");
+	m_selectNames << Font{ FontMethod::MSDF, 30, path }(U"スタート");
+	m_selectNames << Font{ FontMethod::MSDF, 30, path }(U"設定");
+	m_selectNames << Font{ FontMethod::MSDF, 30, path }(U"終了");
 
 	// 終了画面の選択肢の文字設定
-	m_exitNames << Font{ FontMethod::MSDF, 20 }(U"はい");
-	m_exitNames << Font{ FontMethod::MSDF, 20 }(U"いいえ");
+	m_exitNames << Font{ FontMethod::MSDF, 30, path }(U"はい");
+	m_exitNames << Font{ FontMethod::MSDF, 30, path }(U"いいえ");
 
 	// 終了画面内のフォント
-	m_exitFont = { FontMethod::MSDF, 60 };
+	m_exitFont = { FontMethod::MSDF, 60, path };
+
+	// 背景画像のロード
+	Image image = Image{ U"Assets/texture/TitleBG.png" };
+	m_titleBG = Texture{ image };
+	image.release();
 
 	return true;
 }
@@ -60,16 +75,12 @@ void SceneTitle::GameInit()
 
 	// 現在マウスがのってるボタンの番号
 	m_currentHoverIndex = -1;
+
+	m_optionTitle->GameInit();
 }
 
 void SceneTitle::update()
 {
-	if (KeyEnter.down())
-	{
-		changeScene(SceneState::GAME);
-	}
-
-
 	switch (m_titleState)
 	{
 	case TitleState::Init:
@@ -77,6 +88,12 @@ void SceneTitle::update()
 		break;
 
 	case TitleState::Option:
+		m_optionTitle->Update();
+		if (m_optionTitle->IsClosed())
+		{
+			m_titleState = TitleState::Init;
+			m_optionTitle->ResetIsClosed();
+		}
 		break;
 
 	case TitleState::Exit:
@@ -89,10 +106,13 @@ void SceneTitle::draw() const
 {
 	Scene::SetBackground(ColorF{ Palette::Yellowgreen });
 
+	const Vec2 bgPos{ 0.0, 0.0 };
+	m_titleBG.draw(bgPos);
+
 	// タイトル文字の描画
 	const Vec2 titlePos{ Scene::Center().x, Scene::Height() / 6.0 };	// タイトル文字の位置
 	const double p{ 0.4 };												// 文字の輪郭の大きさ
-	m_titleFont(U"はじめての3D").drawAt(TextStyle::Outline(p, ColorF{ Palette::White }), titlePos, ColorF{ Palette::Darkorange });
+	m_titleFont(U"はじめての3D").drawAt(TextStyle::Outline(p, ColorF{ Palette::White }), titlePos, ColorF{ Palette::Dodgerblue });
 
 	switch (m_titleState)
 	{
@@ -101,6 +121,7 @@ void SceneTitle::draw() const
 		break;
 
 	case TitleState::Option:
+		m_optionTitle->Draw();
 		break;
 
 	case TitleState::Exit:
@@ -225,7 +246,7 @@ void SceneTitle::DrawStateInit() const
 	for (size_t i = 0; i < m_selectNames.size(); ++i)
 	{
 		//const Vec2 addPos{ Scene::Width() / 40.0, m_selectSize.y / 8.0 };
-		m_selectNames[i].drawAt(m_selectPos + m_selectInterval * i, Palette::Sienna);
+		m_selectNames[i].drawAt(m_selectPos + m_selectInterval * i, Palette::Black);
 	}
 }
 
@@ -243,18 +264,16 @@ void SceneTitle::DrawStateExit() const
 		switch (i)
 		{
 		case 0:
-			m_exitBtns[i].draw(Palette::Red);
+			m_exitBtns[i].draw(ColorF{ Palette::Red, m_exitBtns[i].mouseOver() ? 1.0 : 0.0});
 
-			m_exitBtns[i].drawFrame(thickness, m_exitBtns[i].mouseOver() ? Palette::White : Palette::Red);			// マウスが図形の上にきたら周りが白くなる
-			m_exitNames[i].drawAt(m_exitPos + m_exitInterval * i, ColorF{ Palette::Black });							// 文字の描画
+			m_exitNames[i].drawAt(m_exitPos + m_exitInterval * i, ColorF{ Palette::White });							// 文字の描画
 
 			break;
 
 		case 1:
-			m_exitBtns[i].draw(Palette::Gray);
+			m_exitBtns[i].draw(ColorF{ Palette::Gray, m_exitBtns[i].mouseOver() ? 1.0 : 0.0 });
 
-			m_exitBtns[i].drawFrame(thickness, m_exitBtns[i].mouseOver() ? Palette::White : Palette::Gray);			// マウスが図形の上にきたら周りが白くなる
-			m_exitNames[i].drawAt(m_exitPos + m_exitInterval * i, ColorF{ Palette::Black });						// 文字の描画
+			m_exitNames[i].drawAt(m_exitPos + m_exitInterval * i, ColorF{ Palette::White });						// 文字の描画
 
 			break;
 		}

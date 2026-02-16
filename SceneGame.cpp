@@ -4,9 +4,15 @@
 #include "Enemy.h"
 #include "Camera.h"
 #include "Explosion.h"
+#include "OptionGame.h"
 
 SceneGame::SceneGame(const InitData& init)
 	: IScene(init)
+	, m_player(nullptr)
+	, m_enemy(nullptr)
+	, m_camera(nullptr)
+	, m_explosion(nullptr)
+	, m_optionGame(nullptr)
 {
 	SystemInit();
 	GameInit();
@@ -35,7 +41,7 @@ bool SceneGame::SystemInit()
 	// プレイヤーの生成
 	m_player = AddGameObject<Player>();
 	m_player->SetPosition(Vec3{ 0, 0, 0});
-	m_player->SetScale(3.0f);
+	m_player->SetScale(4.0f);
 	m_player->SetRotation(Quaternion::Identity());
 
 	// カメラ生成
@@ -46,9 +52,15 @@ bool SceneGame::SystemInit()
 	// 敵の生成
 	m_enemy = AddGameObject<Enemy>();
 	m_enemy->SetPosition(Vec3{ 0.0, 0.0, 15.0 });
+	m_enemy->SetScale(5.0f);
 
 	m_gameState = GameState::WaitStart;
+	m_prevState = m_gameState;
 	m_countdown = 0.0;
+
+	const auto& data = getData();
+	m_optionGame = std::make_unique<OptionGame>(data.settings, data.audio);
+	if (m_optionGame == nullptr) return false;
 
 	// フォントのパス設定
 	const FilePath path = (FileSystem::GetFolderPath(SpecialFolder::SystemFonts) + U"HGRSGU.TTC");		// Windows内のフォント
@@ -62,12 +74,14 @@ bool SceneGame::SystemInit()
 		obj->Initialize();
 	}
 
+	if (!m_optionGame->SystemInit()) return false;
+
 	return true;
 }
 
 void SceneGame::GameInit()
 {
-
+	m_optionGame->GameInit();
 }
 
 void SceneGame::update()
@@ -76,6 +90,7 @@ void SceneGame::update()
 
 	const double dt = Scene::DeltaTime();
 	auto& data = getData();
+
 
 	// ゲームの状態遷移
 	switch (m_gameState)
@@ -99,6 +114,12 @@ void SceneGame::update()
 
 	case GameState::Playing:
 		m_countdown -= dt;
+
+		if (KeyZ.down())
+		{
+			m_gameState = GameState::Option;
+			m_prevState = GameState::Playing;
+		}
 
 		// ゲームオブジェクトの更新
 		for (auto& obj : m_gameObject)
@@ -155,11 +176,20 @@ void SceneGame::update()
 		data.isClear = false;
 		changeScene(SceneState::RESULT);
 		break;
-	}
 
-	if (KeyEnter.down())
-	{
-		changeScene(SceneState::RESULT);
+	case GameState::Option:
+		m_optionGame->Update();
+		if (m_optionGame->IsClosed())
+		{
+			m_gameState = m_prevState;
+			m_optionGame->ResetIsClosed();
+		}
+		else if (m_optionGame->IsReturnTitle())
+		{
+			changeScene(SceneState::TITLE);
+			m_optionGame->ResetIsReturnTitle();
+		}
+		break;
 	}
 }
 
@@ -232,7 +262,11 @@ void SceneGame::draw() const
 			{
 				m_enemy->HPBarDraw();
 			}
-		}		
+		}
+		else if (m_gameState == GameState::Option)
+		{
+			m_optionGame->Draw();
+		}
 	}
 }
 

@@ -20,10 +20,11 @@ Box BoxColliderComponent::GetBox() const
 		return Box{ Vec3::Zero(), m_size };
 	}
 
-	return Box{ ownerPtr->GetPosition(), m_size };
+	return Box{ Arg::bottomCenter(ownerPtr->GetPosition()), m_size };
 }
 
 void BoxColliderComponent::Draw() const
 {
+	ScopedRenderStates3D blend{ BlendState::Additive };
 	//DrawDebug();
 }

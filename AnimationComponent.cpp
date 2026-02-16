@@ -30,10 +30,7 @@ void AnimationComponent::Initialize()
 	m_animations[U"Attack_R4"] = U"Assets/fbx/FlyingKick.fbx";
 	m_animations[U"Attack_L1R1"] = U"Assets/fbx/HookPunch.fbx";
 	m_animations[U"Attack_L2R1"] = U"Assets/fbx/JumpKick.fbx";
-	m_animations[U"Attack_L3R1"] = U"Assets/fbx/InsideCrescentKick.fbx";
-	
-	
-	
+	m_animations[U"Attack_L3R1"] = U"Assets/fbx/InsideCrescentKick.fbx";	
 
 	for (auto& [key, path] : m_animations)
 	{

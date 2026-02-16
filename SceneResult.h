@@ -24,6 +24,9 @@ private:
 
 	Font m_resultFont;							// 結果のフォント
 
+	Texture m_clearBG;
+	Texture m_FailedBG;
+
 	double m_timer{ 0.0 };						// 結果表示から選択肢が表示されるまでの時間
 	bool m_isShowSelect{ false };				// 選択肢を表示するか
 };

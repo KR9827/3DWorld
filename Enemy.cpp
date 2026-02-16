@@ -15,8 +15,11 @@ Enemy::~Enemy()
 
 void Enemy::Initialize()
 {
-	AddComponent<BoxRendererComponent>(100);
+	//AddComponent<BoxRendererComponent>(100);
 	auto collider = AddComponent<BoxColliderComponent>(120);
+
+	m_rockModel = Model{ U"Assets/obj/untitled.obj" };
+	Model::RegisterDiffuseTextures(m_rockModel, TextureDesc::MippedSRGB);
 
 	// HPの初期化
 	m_maxHP = 300;
@@ -30,7 +33,7 @@ void Enemy::Initialize()
 	m_HPBarFront = RectF{ m_HPBarPos, m_HPBarMaxSize }.rounded(m_HPBarRadius);
 
 	// 敵(ボックス)のサイズを設定
-	m_size = Vec3{ 5.0, 10.0, 5.0 };
+	m_size = Vec3{ 10.0, 8.0, 10.0 };
 
 	// コライダーにサイズを渡す
 	if (collider)
@@ -52,6 +55,15 @@ void Enemy::UpdateGameObject(float deltaTime)
 	double hpBarFrontWidth = m_HPBarMaxSize.x * m_ratio;
 	m_HPBarSize.x = hpBarFrontWidth;
 	m_HPBarFront = RectF{ m_HPBarPos, m_HPBarSize }.rounded(m_HPBarRadius);
+}
+
+void Enemy::DrawGameObject() const
+{
+	const Vec3 offset{ 11.0, 2.0, 0.0 };
+	// 岩のサイズと大きさを変更する計算
+	Mat4x4 world = Mat4x4::Scale(this->GetScale()) * Mat4x4::Translate(offset) * Mat4x4::Translate(this->GetPosition());
+
+	m_rockModel.draw(world);
 }
 
 void Enemy::TakeDamage(const int32& damage)

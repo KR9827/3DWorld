@@ -19,7 +19,7 @@ public:
 
 #if _DEBUG
 	// デバッグ描画（任意）
-	void DrawDebug(const ColorF& color = ColorF{ 1.0, 0.0, 0.0, 0.2 }) const
+	void DrawDebug(const ColorF& color = ColorF{ 0.0, 1.0, 0.0, 0.2 }) const
 	{
 		GetBox().draw(color);
 	}
