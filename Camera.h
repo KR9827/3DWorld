@@ -5,7 +5,7 @@
 class Camera : public GameObject
 {
 public:
-	Camera(class SceneGame* game);
+	Camera(class SceneGame* game, std::shared_ptr<class Settings> settings);
 	~Camera();
 
 	/// @brief 更新処理
@@ -33,7 +33,10 @@ public:
 	/// @param power 揺れの強さ
 	void StartShake(double duration, double power);
 
+
 private:
+	std::shared_ptr<Settings> m_settings;
+
 	std::weak_ptr<class GameObject> m_target;			// ターゲットの弱参照
 	Vec3 m_offset{ 0.0, 5.0, -10.0 };					// ターゲットからカメラの位置をずらす変化量
 
@@ -41,7 +44,6 @@ private:
 
 	double m_yaw{ static_cast<float>(-Math::Pi) / 2.0 };	// 左右回転
 	double m_pitch{ 0.0 };									// 上下回転
-	double m_sensitivity{ 0.005 };							// カメラの感度
 
 	// 爆発の揺れ用
 	double m_shakeTime{ 0.0 };

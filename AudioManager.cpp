@@ -108,7 +108,7 @@ void AudioManager::PlaySEPan(const String& id, const Vec3& sourcePos, const Came
 	atten = Clamp(atten, 0.0, 1.0);
 
 	// 対象が後ろの場合
-	if (camSpace.z < 0)
+	if (camSpace.z > 0)
 	{
 		atten *= 0.6;
 	}

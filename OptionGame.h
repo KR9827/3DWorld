@@ -25,5 +25,7 @@ private:
 	Vec2 m_btnPos;								// オプション画面の下方ボタンの中心位置
 	Vec2 m_btnSize;								// オプション画面の下方ボタンの縦幅と横幅
 
+	bool m_wasMouseOver;
+
 	std::shared_ptr<class AudioManager> m_audio;
 };

@@ -9,7 +9,7 @@ Explosion::Explosion(SceneGame* game)
 
 void Explosion::Initialize()
 {
-	const int32 particleCount{ 100 };
+	const int32 particleCount{ 150 };
 
 	for (int32 i = 0; i < particleCount; ++i)
 	{

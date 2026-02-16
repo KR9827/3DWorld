@@ -1,4 +1,5 @@
 ﻿#include "SceneResult.h"
+#include "AudioManager.h"
 
 SceneResult::SceneResult(const InitData& init)
 	: IScene(init)
@@ -14,6 +15,8 @@ SceneResult::~SceneResult()
 
 bool SceneResult::SystemInit()
 {
+	const auto& data = getData();
+
 	// フォントのパス設定
 	const FilePath path = (FileSystem::GetFolderPath(SpecialFolder::SystemFonts) + U"HGRSGU.TTC");		// Windows内のfont
 	m_resultFont = Font{ FontMethod::MSDF, 100, path };
@@ -28,6 +31,10 @@ bool SceneResult::SystemInit()
 	image = Image{ U"Assets/texture/FailedBG.png" };
 	m_FailedBG = Texture{ image };
 	image.release();
+
+	// BGM
+	data.audio->PreLoadBGM(U"GameClear", U"Assets/Sounds/BGM/ClearBGM.wav");
+	data.audio->PreLoadBGM(U"GameOver", U"Assets/Sounds/BGM/FailedBGM.wav");
 
 	return true;
 }
@@ -48,10 +55,19 @@ void SceneResult::GameInit()
 
 	m_timer = 0.0;
 	m_isShowSelect = false;
+
+	m_isPlaySE = false;
+
+	const auto& data = getData();
+	String name = data.isClear ? U"GameClear" : U"GameOver";
+	data.audio->PlayBGM(name, true);
+
+	m_currentHoverIndex = -1;
 }
 
 void SceneResult::update()
 {
+	const auto& data = getData();
 	const double dt = Scene::DeltaTime();
 
 	m_timer += dt;
@@ -60,28 +76,48 @@ void SceneResult::update()
 		m_isShowSelect = true;
 	}
 
+	if (!m_isShowSelect) return;
+
+	bool isHovered = false;			// どのボタンにものってないかのフラグ
+	
 	for (size_t i = 0; i < m_selectBars.size(); ++i)
 	{
+		auto& data = getData();
+		// 選択肢の上にマウスがきたらSEを流す
 		if (m_selectBars[i].mouseOver())
 		{
-			// se流す
+			isHovered = true;
 
-
-			if (MouseL.down())
+			if (m_currentHoverIndex != i)
 			{
-				if (i == 0)
-				{
-					changeScene(SceneState::GAME);
-				}
-				else
-				{
-					changeScene(SceneState::TITLE);
-				}
-
-				m_timer = 0.0;
-				m_isShowSelect = false;
+				data.audio->PlaySE(U"Select");
+				m_currentHoverIndex = static_cast<int32>(i);
 			}
-		}		
+		}
+
+		if (m_selectBars[i].leftClicked())
+		{
+			// 決定SEを流す
+			data.audio->PlaySE(U"Decision");
+
+			if (i == 0)		// リトライ
+			{
+				changeScene(SceneState::GAME);
+			}
+			else			// タイトルへ戻る
+			{
+				changeScene(SceneState::TITLE);
+			}
+
+			getData().audio->StopBGM(1s);
+			m_isShowSelect = false;
+		}
+	}
+
+	// ボタンの上から外れたらリセットする
+	if (!isHovered)
+	{
+		m_currentHoverIndex = -1;
 	}
 }
 

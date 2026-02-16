@@ -29,4 +29,7 @@ private:
 
 	double m_timer{ 0.0 };						// 結果表示から選択肢が表示されるまでの時間
 	bool m_isShowSelect{ false };				// 選択肢を表示するか
+
+	int32 m_currentHoverIndex;
+	bool m_isPlaySE{ false };
 };

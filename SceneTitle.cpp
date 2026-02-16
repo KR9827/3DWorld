@@ -46,11 +46,21 @@ bool SceneTitle::SystemInit()
 	m_titleBG = Texture{ image };
 	image.release();
 
+	// BGM
+	data.audio->PreLoadBGM(U"TitleBGM", U"Assets/Sounds/BGM/TitleBGM.wav");
+	// SE
+	data.audio->PreLoadSE(U"Select", U"Assets/Sounds/SE/select.wav");
+	data.audio->PreLoadSE(U"Decision", U"Assets/Sounds/SE/Decision.wav");
+
 	return true;
 }
 
 void SceneTitle::GameInit()
 {
+	// BGMの再生
+	getData().audio->PlayBGM(U"TitleBGM", true);
+
+
 	m_titleState = TitleState::Init;
 
 	// 選択バーの位置の設定
@@ -138,8 +148,7 @@ void SceneTitle::UpdateStateInit()
 	{
 		// バーのクリック判定を形に合わせる
 		const RectF& optionBar = m_selectBars[i];
-		//const Quad optionBar = rect.skewedX(-30_deg);
-		//auto& data = getData();
+		auto& data = getData();
 
 		// 選択肢の上にマウスがきたらSEを流す
 		if (optionBar.mouseOver())
@@ -148,7 +157,7 @@ void SceneTitle::UpdateStateInit()
 
 			if (m_currentHoverIndex != i)
 			{
-				//data.audio->PlaySE(U"Select");
+				data.audio->PlaySE(U"Select");
 				m_currentHoverIndex = static_cast<int32>(i);
 			}
 		}
@@ -156,14 +165,14 @@ void SceneTitle::UpdateStateInit()
 		if (optionBar.leftReleased())
 		{
 			// 決定SEを流す
-			//data.audio->PlaySE(U"Decision");
+			data.audio->PlaySE(U"Decision");
 
 			// クリックされたバーによって変える
 			switch (i)
 			{
 			case 0:										//スタート 
 				changeScene(SceneState::GAME);
-				//getData().audio->StopBGM(1s);
+				data.audio->StopBGM(1s);
 
 				return;
 
@@ -193,7 +202,7 @@ void SceneTitle::UpdateStateExit()
 
 	for (size_t i = 0; i < m_exitBtns.size(); ++i)
 	{
-		//auto& data = getData();
+		auto& data = getData();
 		// 選択肢の上にマウスがきたらSEを流す
 		if (m_exitBtns[i].mouseOver())
 		{
@@ -201,14 +210,14 @@ void SceneTitle::UpdateStateExit()
 
 			if (m_currentHoverIndex != i)
 			{
-				//data.audio->PlaySE(U"Select");
+				data.audio->PlaySE(U"Select");
 				m_currentHoverIndex = static_cast<int32>(i);
 			}
 		}
 
 		if (m_exitBtns[i].leftReleased())
 		{
-			//getData().audio->PlaySE(U"Decision");
+			getData().audio->PlaySE(U"Decision");
 
 			if (i == 0)
 			{

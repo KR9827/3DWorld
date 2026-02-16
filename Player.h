@@ -5,7 +5,7 @@
 class Player : public GameObject
 {
 public:
-	Player(class SceneGame* game);
+	Player(class SceneGame* game, std::shared_ptr<class AudioManager> audio);
 	~Player();
 
 	void Initialize() override;
@@ -18,8 +18,6 @@ public:
 	/// @return 移動方向
 	Vec3 GetMove() const { return m_move; }
 
-	Sphere GetAttackSphere() const { return m_Sphere; }
-	Vec3 GetBonePos() const { return m_bonePos; }
 
 private:
 	static constexpr double MOVE_SPEED{ 20.0 };				// 移動速度
@@ -31,6 +29,7 @@ private:
 	{
 		String animNode;						// このノードで再生するアニメ
 		String boneName;						// このノードで攻撃判定を出すボーンの名前
+		String attackType;						// このノードの攻撃方法（p:punchi, k:Kick）
 		int32 damage;							// このノードの攻撃力
 		HashTable<char, ComboNode*> next;		// 次につながる入力
 	};
@@ -52,9 +51,6 @@ private:
 
 	void ResolvePhysics();
 
-
-	// 仮
-	Sphere m_Sphere;
-	Vec3 m_bonePos;
+	std::shared_ptr<class AudioManager> m_audio;
 
 };

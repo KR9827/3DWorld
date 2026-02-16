@@ -1,14 +1,17 @@
 ﻿#include "Camera.h"
 #include "SceneGame.h"
+#include "Settings.h"
 
-Camera::Camera(SceneGame* game)
+Camera::Camera(SceneGame* game, std::shared_ptr<Settings> settings)
 	: GameObject(game)
+	, m_settings(settings)
 {
 	Cursor::ClipToWindow(true);
 }
 
 Camera::~Camera()
 {
+	Cursor::ClipToWindow(false);
 }
 
 void Camera::UpdateGameObject(float deltaTime)
@@ -26,9 +29,11 @@ void Camera::UpdateGameObject(float deltaTime)
 		// マウスが端に到達してないとき
 		if (!warped)
 		{
+			const double sensitivity = m_settings->m_cameraSensitivity;
+
 			// 感度をかける
-			m_yaw -= mouseDelta.x * m_sensitivity;
-			m_pitch += mouseDelta.y * m_sensitivity;
+			m_yaw -= mouseDelta.x * sensitivity;
+			m_pitch += mouseDelta.y * sensitivity;
 		}
 
 		// 上下の角度を制限

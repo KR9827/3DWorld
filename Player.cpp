@@ -6,10 +6,12 @@
 #include "SphereColliderComponent.h"
 #include "Enemy.h"
 #include "BoxColliderComponent.h"
+#include "AudioManager.h"
 
-Player::Player(SceneGame* game)
+Player::Player(SceneGame* game, std::shared_ptr<AudioManager> audio)
 	: GameObject(game)
 	, m_game(game)
+	, m_audio(audio)
 {
 	CreateComboTree();
 	m_currentNode = m_root.get();
@@ -22,6 +24,9 @@ Player::~Player()
 
 void Player::Initialize()
 {
+	m_audio->PreLoadSE(U"Punchi", U"Assets/sounds/SE/Punchi.wav");
+	m_audio->PreLoadSE(U"Kick", U"Assets/sounds/SE/Kick.wav");
+
 	// コンポーネントを追加
 	auto model = AddComponent<FBXModelComponent>(U"Assets/fbx/Walking.fbx", 100);
 	AddComponent<AnimationComponent>(model->GetSkeleton(), 120);					// スケルトンのポインタをAnimationComponentに渡す
@@ -104,16 +109,16 @@ void Player::CreateComboTree()
 	m_root = std::make_unique<ComboNode>(ComboNode{ U"", {} });
 
 	// 各ノードの登録
-	auto L1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L1", U"mixamorig:LeftHand", 10, {}});
-	auto L2 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L2", U"mixamorig:RightHand", 20, {} });
-	auto L3 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L3", U"mixamorig:RightHand", 30, {} });
-	auto R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R1", U"mixamorig:LeftFoot", 20, {} });
-	auto R2 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R2", U"mixamorig:RightFoot", 40, {} });
-	auto R3 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R3", U"mixamorig:LeftFoot", 40, {} });
-	auto R4 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R4", U"mixamorig:LeftFoot", 50, {} });
-	auto L1R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L1R1", U"mixamorig:RightHand", 30, {} });
-	auto L2R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L2R1", U"mixamorig:LeftFoot", 50, {} });
-	auto L3R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L3R1", U"mixamorig:RightFoot", 60, {} });
+	auto L1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L1", U"mixamorig:LeftHand", U"P", 10, {}});
+	auto L2 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L2", U"mixamorig:RightHand", U"P", 20, {} });
+	auto L3 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L3", U"mixamorig:RightHand", U"P", 30, {} });
+	auto R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R1", U"mixamorig:LeftFoot", U"K", 20, {} });
+	auto R2 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R2", U"mixamorig:RightFoot", U"K", 40, {} });
+	auto R3 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R3", U"mixamorig:LeftFoot", U"K", 40, {} });
+	auto R4 = std::make_unique<ComboNode>(ComboNode{ U"Attack_R4", U"mixamorig:LeftFoot", U"K", 50, {} });
+	auto L1R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L1R1", U"mixamorig:RightHand", U"P", 30, {} });
+	auto L2R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L2R1", U"mixamorig:LeftFoot", U"K", 50, {} });
+	auto L3R1 = std::make_unique<ComboNode>(ComboNode{ U"Attack_L3R1", U"mixamorig:RightFoot", U"K", 60, {} });
 
 	// コンボ登録
 	L1->next['L'] = L2.get();
@@ -185,18 +190,25 @@ void Player::CheckAttackCollision(std::shared_ptr<AnimationComponent> anim)
 	// ボーンの位置を球の中心にする
 	Vec3 bonePos = worldMatrix.transformPoint(Vec3::Zero());
 	Sphere attackSphere{ bonePos, 1.0 };						// 攻撃判定用の球
-	// 仮
-	m_bonePos = bonePos;
-	m_Sphere = attackSphere;
-
-
+	
 
 	// 敵の当たり判定用ボックスと交差してる時
 	auto enemyCollider = enemy->GetComponent<BoxColliderComponent>();
+	auto camera = m_game->GetCamera();
 	if (enemyCollider && attackSphere.intersects(enemyCollider->GetBox()))
 	{
 		m_hasHitThisAttack = true;
 		enemy->TakeDamage(damage);
+
+		// SE
+		if (m_currentNode->attackType == U"P")
+		{
+			m_audio->PlaySEPan(U"Punchi", enemy->GetPosition(), *camera);
+		}
+		else if (m_currentNode->attackType == U"K")
+		{
+			m_audio->PlaySEPan(U"Kick", enemy->GetPosition(), *camera);
+		}
 	}
 }
 

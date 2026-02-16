@@ -20,12 +20,6 @@ public:
 	Vec2 GetOptionWindowPos() const { return m_optionWindowPos; }
 	Vec2 GetOptionWindowSize() const { return m_optionWindowSize; }
 
-protected:
-
-	
-	// SE用
-	bool m_isPlayedSE{ false };					// SEがなったかのフラグ
-
 private:
 	bool m_isClosed;							// オプション画面を閉じるかどうかのフラグ
 
@@ -36,7 +30,9 @@ private:
 	Vec2 m_optionCloseBtnSize;					// オプション画面の閉じるボタンの縦と横のサイズ
 	Polygon m_optionCloseBtn;					// オプション画面の閉じるボタン
 	Font m_closeMark;							// オプション画面の×マーク
-	
+
+	// SE用
+	bool m_isPlayedSE{ false };					// SEがなったかのフラグ
 
 	// 各クラスのインスタンスのポインタ
 	std::shared_ptr<class Settings> m_settings;

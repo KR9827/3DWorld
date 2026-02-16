@@ -28,6 +28,8 @@ bool SceneGame::SystemInit()
 	m_backgroundColor = ColorF{ Palette::Dodgerblue };
 	Scene::SetBackground(m_backgroundColor);
 
+	const auto& data = getData();
+
 	m_renderTexture = MSRenderTexture{ Scene::Size(), TextureFormat::R8G8B8A8_Unorm_SRGB, HasDepth::Yes };
 
 	// 光源の設定
@@ -39,13 +41,13 @@ bool SceneGame::SystemInit()
 	m_groundTexture = Texture{ U"example/texture/ground.jpg", TextureDesc::MippedSRGB };
 
 	// プレイヤーの生成
-	m_player = AddGameObject<Player>();
+	m_player = AddGameObject<Player>(data.audio);
 	m_player->SetPosition(Vec3{ 0, 0, 0});
 	m_player->SetScale(4.0f);
 	m_player->SetRotation(Quaternion::Identity());
 
 	// カメラ生成
-	m_camera = AddGameObject<Camera>();
+	m_camera = AddGameObject<Camera>(data.settings);
 	m_camera->SetTarget(m_player);			// 追従対象を指定
 	m_camera->SetPosition(Vec3{ 0, 5, -10 });
 
@@ -58,7 +60,7 @@ bool SceneGame::SystemInit()
 	m_prevState = m_gameState;
 	m_countdown = 0.0;
 
-	const auto& data = getData();
+	
 	m_optionGame = std::make_unique<OptionGame>(data.settings, data.audio);
 	if (m_optionGame == nullptr) return false;
 
@@ -68,6 +70,11 @@ bool SceneGame::SystemInit()
 	m_waitStartFont = Font{ FontMethod::MSDF, 80, path };
 	m_countdownFont = Font{ FontMethod::MSDF, 80, path };
 	m_timeLimitFount = Font{ FontMethod::MSDF, 60, path };
+
+	// BGMのロード
+	data.audio->PreLoadBGM(U"GameBGM", U"Assets/sounds/BGM/GameBGM.wav");
+	// SEのロード
+	data.audio->PreLoadSE(U"Explosion", U"Assets/sounds/SE/Explosion.wav");
 
 	for (const auto& obj : m_gameObject)
 	{
@@ -82,20 +89,24 @@ bool SceneGame::SystemInit()
 void SceneGame::GameInit()
 {
 	m_optionGame->GameInit();
+	getData().audio->PlayBGM(U"GameBGM", true);
 }
 
 void SceneGame::update()
 {
-	ClearPrint();
-
 	const double dt = Scene::DeltaTime();
 	auto& data = getData();
-
 
 	// ゲームの状態遷移
 	switch (m_gameState)
 	{
 	case GameState::WaitStart:
+		if (KeyZ.down())
+		{
+			m_gameState = GameState::Option;
+			m_prevState = GameState::WaitStart;
+		}
+
 		if (MouseL.down())
 		{
 			m_countdown = COUNTDOWN_TIME;
@@ -105,6 +116,13 @@ void SceneGame::update()
 
 	case GameState::Countdown:
 		m_countdown -= dt;
+
+		if (KeyZ.down())
+		{
+			m_gameState = GameState::Option;
+			m_prevState = GameState::Countdown;
+		}
+
 		if (m_countdown <= -1.0)
 		{
 			m_countdown = TIME_LIMIT;
@@ -133,12 +151,14 @@ void SceneGame::update()
 			// 爆発エフェクトの生成
 			m_explosion = AddGameObject<Explosion>();
 			m_explosion->SetPosition(m_enemy->GetPosition());
-			m_explosion->Initialize();
+			m_explosion->Initialize();			
+
+			m_camera->StartShake(1.0, 2.0);		// カメラを揺らす
+
+			data.audio->PlaySEPan(U"Explosion", m_enemy->GetPosition(), *m_camera);
 
 			RemoveGameObject(m_enemy);
 			m_enemy.reset();
-
-			m_camera->StartShake(1.0, 2.0);		// カメラを揺らす
 
 			m_gameState = GameState::Exploding;
 		}
@@ -166,14 +186,14 @@ void SceneGame::update()
 		break;
 
 	case GameState::Clear:
-		Print << U"success!";
 		data.isClear = true;
+		data.audio->StopBGM(1s);
 		changeScene(SceneState::RESULT);
 		break;
 
 	case GameState::Failed:
-		Print << U"Failed...";
 		data.isClear = false;
+		data.audio->StopBGM(1s);
 		changeScene(SceneState::RESULT);
 		break;
 

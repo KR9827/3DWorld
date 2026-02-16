@@ -16,7 +16,7 @@ OptionGame::~OptionGame()
 bool OptionGame::SystemInit()
 {
 	// SE
-	//m_audio->PreLoadSE(U"Decision", U"Assets/Sounds/SE/Decision.wav");
+	m_audio->PreLoadSE(U"Decision", U"Assets/Sounds/SE/Decision.wav");
 
 	// フォントのパス設定
 	const FilePath path = (FileSystem::GetFolderPath(SpecialFolder::SystemFonts) + U"HGRSGU.TTC");		// Windows内のHGP創英角ポップ体
@@ -37,6 +37,7 @@ void OptionGame::GameInit()
 	m_btnSize = { size.x / 4.0, size.y / 10.0 };									// オプション画面の下方ボタンの縦幅と横幅
 	m_btn = RectF{ Arg::center(m_btnPos), m_btnSize };								// ボタンの定義
 
+	m_wasMouseOver = false;
 }
 
 void OptionGame::Update()
@@ -46,18 +47,22 @@ void OptionGame::Update()
 	// 下方のボタンにマウスがのったらSEを流す
 	if (m_btn.mouseOver())
 	{
-		if (!m_isPlayedSE)
+		if (!m_wasMouseOver)
 		{
-			//m_audio->PlaySE(U"Select");
-			m_isPlayedSE = true;
+			m_audio->PlaySE(U"Select");
+			m_wasMouseOver = true;
 		}
+	}
+	else
+	{
+		m_wasMouseOver = false;
 	}
 
 	if (m_btn.leftClicked())
 	{
 		m_isReturnTitle = true;
 
-		//m_audio->PlaySE(U"Decision");
+		m_audio->PlaySE(U"Decision");
 	}
 }
 

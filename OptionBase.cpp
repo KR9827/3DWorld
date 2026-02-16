@@ -15,7 +15,7 @@ OptionBase::OptionBase(std::shared_ptr<Settings> settings, std::shared_ptr<Audio
 bool OptionBase::SystemInit()
 {
 	// SE
-	//m_audio->PreLoadSE(U"Select", U"Assets/Sounds/SE/select.wav");
+	m_audio->PreLoadSE(U"Select", U"Assets/Sounds/SE/select.wav");
 
 	return true;
 }
@@ -57,7 +57,7 @@ void OptionBase::Update()
 	if (m_optionCloseBtn.leftClicked())
 	{
 		m_isClosed = true;
-		//m_audio->PlaySE(U"Select");
+		m_audio->PlaySE(U"Select");
 	}
 
 	//// 下方のボタンにマウスがのったらSEを流す
@@ -96,7 +96,7 @@ void OptionBase::Draw() const
 	const double sliderWidth{ m_optionWindowSize.x / 3.0 };																			// スライダーの横幅
 	const Vec2 sliderPos{ (m_optionWindowSize.x - sliderWidth) / 2.0, m_optionWindowPos.y + m_optionWindowSize.y / 7.0 };			// スライダーの左上の座標
 	const Vec2 sliderGap{ 0, m_optionWindowSize.y / 10.0 };																			// スライダー間のサイズ
-	const double sliderLabelW{ m_optionWindowSize.x / 6.0 };																		// スライダーの文字の部分のサイズ
+	const double sliderLabelW{ m_optionWindowSize.x / 5.0 };																		// スライダーの文字の部分のサイズ
 
 
 	// 音量のスライダー
@@ -112,6 +112,12 @@ void OptionBase::Draw() const
 	{
 		m_audio->SetBusVolume(Bus::SE, m_settings->m_seVolume);
 	}
+	// カメラ感度
+	if (SimpleGUI::Slider(U"Camera Sensitivity", m_settings->m_cameraSensitivity, 0.001, 0.01, sliderPos + sliderGap * 3.0, sliderLabelW, sliderWidth))
+	{
+		m_settings->Save();   // 変更されたら保存
+	}
+
 
 	//m_btn.draw(m_btn.mouseOver() ? Palette::Red : Palette::Darkred);
 }
