@@ -9,7 +9,7 @@ Explosion::Explosion(SceneGame* game)
 
 void Explosion::Initialize()
 {
-	const int32 particleCount{ 150 };
+	const int32 particleCount{ 200 };
 
 	for (int32 i = 0; i < particleCount; ++i)
 	{
@@ -36,7 +36,7 @@ void Explosion::UpdateGameObject(float deltaTime)
 		p.position += p.velocity * deltaTime;
 
 		// 少し減速させる
-		p.velocity *= 0.95;
+		p.velocity *= Math::Exp(-3.0 * deltaTime);
 	}
 
 	// 全部のパーティクルが寿命を終えたら爆発も消す

@@ -208,6 +208,7 @@ void SceneGame::update()
 		{
 			changeScene(SceneState::TITLE);
 			m_optionGame->ResetIsReturnTitle();
+			data.audio->StopBGM(1s);
 		}
 		break;
 	}
