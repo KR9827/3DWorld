@@ -106,7 +106,7 @@ void FBXModelComponent::Update(double deltaTime)
 
 	auto& mats = m_skeleton->GetFinalBoneTransform();
 
-	// スケルトンのボーン変形にしたがってスキニングをする(CPUで頂点変換する)
+	// スケルトンのボーン変形にしたがってスキニングをする
 	for (auto& sub : m_subMeshes)
 	{
 		ApplySkinning(sub);
