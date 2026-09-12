@@ -1,10 +1,21 @@
 # はじめての3D
 ## タイムアタック3Dアクション
 
-// 画像やGif
+<table border="0">
+  <tr>
+    <td align="center" width="50%">
+      <b>タイトル画面</b><br>
+      <img src="App/images/title.png" alt="タイトル画面" width="100%">
+    </td>
+    <td align="center" width="50%">
+      <b>コンボ例（弱 → 弱 → 弱 → 強）</b><br>
+      <img src="App/images/ComboDemo.gif" alt="コンボ例（弱 → 弱 → 弱 → 強）" width="100%">
+    </td>
+  </tr>
+</table>
 
 ## 作品概要
-- **開発環境**：C++ / Siv3D / Visual Studio 2022
+- **開発環境**：C++ / Siv3D / Assimp / Visual Studio 2022
 - **開発期間・人数**：2026年1月～2026年2月（2ヶ月） / 個人制作
 
 ## 特徴
@@ -36,7 +47,7 @@ Siv3Dの標準機能では対応していないFBXモデルのボーンアニメ
 > 参考文献・引用
 >
 > 書籍<br>
-> Sanjay Madhav 「ゲームプログラミングC++」　出版社　（出版年）<br>
+> Sanjay Madhav 「ゲームプログラミングC++」　翔泳社　（2018）<br>
 >
 > Webサイト・技術記事<br>
 > ことれい "【解説編】AssimpでFBXアニメーションを動かすための理論的な手順まとめ" [ことれいのもり](https://kotorei.com/c++/fbx-animation-assimp-guide-45) (参照 2026-02)
