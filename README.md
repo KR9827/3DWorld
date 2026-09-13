@@ -47,7 +47,7 @@ Siv3Dの標準機能では対応していないFBXモデルのボーンアニメ
 > 参考文献・引用
 >
 > 書籍<br>
-> Sanjay Madhav 「ゲームプログラミングC++」　翔泳社　（2018）<br>
+> Sanjay Madhav 「ゲームプログラミングC++」　翔泳社　（2023）<br>
 >
 > Webサイト・技術記事<br>
 > ことれい "【解説編】AssimpでFBXアニメーションを動かすための理論的な手順まとめ" [ことれいのもり](https://kotorei.com/c++/fbx-animation-assimp-guide-45) (参照 2026-02)
